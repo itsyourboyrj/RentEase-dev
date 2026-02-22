@@ -18,24 +18,29 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { createTenant } from "@/app/tenants/actions";
 import { toast } from "sonner";
 
 export function AddTenantModal({ buildings, vacantFlats }: { buildings: any[], vacantFlats: any[] }) {
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [selectedBuilding, setSelectedBuilding] = useState<string>("");
 
   // Filter flats based on the building chosen in the first dropdown
   const filteredFlats = vacantFlats.filter(f => f.building_id === selectedBuilding);
 
   async function handleSubmit(formData: FormData) {
+    if (loading) return;
+    setLoading(true);
     try {
       await createTenant(formData);
       toast.success("Tenant onboarded successfully!");
       setOpen(false);
     } catch (error: any) {
       toast.error(error.message);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -117,7 +122,10 @@ export function AddTenantModal({ buildings, vacantFlats }: { buildings: any[], v
             </div>
           </div>
 
-          <Button type="submit" className="w-full">Create Tenant Record</Button>
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            {loading ? "Creating..." : "Create Tenant Record"}
+          </Button>
         </form>
       </DialogContent>
     </Dialog>

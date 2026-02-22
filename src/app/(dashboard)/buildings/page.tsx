@@ -12,6 +12,7 @@ import Link from "next/link";
 export default function BuildingsPage() {
   const [buildings, setBuildings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const supabase = createClient();
 
   async function fetchBuildings() {
@@ -28,6 +29,8 @@ export default function BuildingsPage() {
   }, []);
 
   async function handleSubmit(formData: FormData) {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       await createBuilding(formData);
       toast.success("Building added successfully!");
@@ -35,6 +38,8 @@ export default function BuildingsPage() {
       (document.getElementById("add-building-form") as HTMLFormElement).reset();
     } catch (error: any) {
       toast.error("Error adding building: " + error.message);
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -57,8 +62,9 @@ export default function BuildingsPage() {
             <span className="text-xs text-muted-foreground">₹</span>
             <input name="electricity_rate" type="number" step="0.1" defaultValue="8" className="bg-transparent border-none text-sm focus:outline-none w-12" required />
           </div>
-          <Button type="submit" size="sm" className="rounded-full">
-            <Plus className="mr-1 h-4 w-4" /> Add
+          <Button type="submit" size="sm" className="rounded-full" disabled={isSubmitting}>
+            {isSubmitting ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Plus className="mr-1 h-4 w-4" />}
+            {isSubmitting ? "Adding..." : "Add"}
           </Button>
         </form>
       </div>

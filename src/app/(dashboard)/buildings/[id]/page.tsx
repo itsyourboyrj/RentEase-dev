@@ -8,19 +8,10 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Plus, Building, DoorOpen, ArrowLeft } from "lucide-react";
+import { Building, DoorOpen, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { createFlat } from "@/app/flats/actions";
+import { AddFlatModal } from "./add-flat-modal";
 
 export default async function BuildingDetailPage({ params }: { params: { id: string } }) {
   const supabase = await createClient();
@@ -66,40 +57,7 @@ export default async function BuildingDetailPage({ params }: { params: { id: str
           Flats List ({flats?.length || 0})
         </h2>
 
-        {/* Add Flat Modal */}
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" /> Add Flat
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Flat to {building.name}</DialogTitle>
-            </DialogHeader>
-            <form action={createFlat} className="space-y-4 pt-4">
-              <input type="hidden" name="building_id" value={id} />
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="flat_code">Flat Code (e.g. A-101)</Label>
-                  <Input id="flat_code" name="flat_code" placeholder="A-101" required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="floor">Floor Number</Label>
-                  <Input id="floor" name="floor" type="number" placeholder="1" required />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="rent_amount">Monthly Rent (₹)</Label>
-                <Input id="rent_amount" name="rent_amount" type="number" placeholder="8000" required />
-              </div>
-
-              <Button type="submit" className="w-full">Save Flat</Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <AddFlatModal buildingId={id} buildingName={building.name} />
       </div>
 
       {/* Flats Table */}

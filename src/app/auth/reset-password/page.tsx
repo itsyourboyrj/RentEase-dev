@@ -1,25 +1,83 @@
 "use client";
 
-import { updatePasswordAction } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, KeyRound } from "lucide-react";
-import { useState } from "react";
+import { Loader2, KeyRound, ShieldCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { createClient } from "@/lib/supabase/client";
 
 export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
+  const router = useRouter();
 
-  async function handleReset(formData: FormData) {
-    setLoading(true);
-    const res = await updatePasswordAction(formData);
-    if (res?.error) {
-      toast.error(res.error);
-      setLoading(false);
+  useEffect(() => {
+    const supabase = createClient();
+    const hash = window.location.hash;
+
+    if (hash && hash.includes("access_token")) {
+      // Implicit flow: Supabase put the token in the URL hash fragment
+      const params = new URLSearchParams(hash.substring(1));
+      const accessToken = params.get("access_token");
+      const refreshToken = params.get("refresh_token") ?? "";
+
+      if (accessToken) {
+        supabase.auth
+          .setSession({ access_token: accessToken, refresh_token: refreshToken })
+          .then(({ error }) => {
+            if (error) {
+              toast.error("Session expired. Please request a new reset link.");
+              router.push("/login");
+            } else {
+              setSessionReady(true);
+            }
+          });
+      } else {
+        router.push("/login");
+      }
+    } else {
+      // PKCE flow: session was already set by /auth/callback
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          setSessionReady(true);
+        } else {
+          toast.error("Session expired. Please request a new reset link.");
+          router.push("/login");
+        }
+      });
     }
-    // If successful, the action redirects automatically
+  }, [router]);
+
+  async function handleReset(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (loading) return;
+    setLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+    const password = formData.get("password") as string;
+
+    const supabase = createClient();
+    const { error } = await supabase.auth.updateUser({ password });
+
+    if (error) {
+      toast.error(error.message);
+      setLoading(false);
+    } else {
+      toast.success("Password updated! Redirecting...");
+      router.push("/");
+    }
+  }
+
+  if (!sessionReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   return (
@@ -35,19 +93,32 @@ export default function ResetPasswordPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={handleReset} className="space-y-6">
+          <form onSubmit={handleReset} className="space-y-6">
             <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Set New Password</Label>
+              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                Set New Password
+              </Label>
               <Input
                 name="password"
                 type="password"
                 required
+                minLength={6}
                 className="h-14 bg-muted/40 border-none text-lg focus-visible:ring-primary"
                 placeholder="••••••••"
               />
             </div>
-            <Button className="w-full h-14 text-lg font-bold shadow-xl shadow-primary/20" disabled={loading}>
-              {loading ? <Loader2 className="animate-spin" /> : "Update & Login"}
+            <Button
+              type="submit"
+              className="w-full h-14 text-lg font-bold shadow-xl shadow-primary/20"
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 className="animate-spin" />
+              ) : (
+                <span className="flex items-center gap-2">
+                  <ShieldCheck className="h-5 w-5" /> Update & Login
+                </span>
+              )}
             </Button>
           </form>
         </CardContent>

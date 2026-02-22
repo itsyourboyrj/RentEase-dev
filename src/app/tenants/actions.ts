@@ -48,17 +48,32 @@ export async function createTenant(formData: FormData) {
   revalidatePath('/flats')
 }
 
-export async function checkoutTenant(tenantId: string, flatId: string) {
+export async function checkoutTenant(tenantId: string, flatId: string, finalReading: number) {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Unauthorized")
 
-  // 1. Mark tenant as inactive
-  const { error: tError } = await supabase
+  // 1. Mark tenant as inactive — enforce ownership
+  const updatePayload: Record<string, unknown> = {
+    is_active: false,
+    checkout_date: new Date().toISOString(),
+  }
+  if (Number.isFinite(finalReading)) {
+    updatePayload.final_meter_reading = finalReading
+  }
+
+  const { data: updatedRows, error: tError } = await supabase
     .from('tenants')
-    .update({ is_active: false, checkout_date: new Date().toISOString() })
+    .update(updatePayload)
     .eq('id', tenantId)
+    .eq('owner_id', user.id)
+    .select('id')
+
+  if (tError) throw new Error("Check-out failed: " + tError.message)
+  if (!updatedRows || updatedRows.length === 0) {
+    throw new Error("Check-out failed: tenant not found or not owned by user")
+  }
 
   // 2. Mark flat as vacant
   const { error: fError } = await supabase
@@ -66,7 +81,7 @@ export async function checkoutTenant(tenantId: string, flatId: string) {
     .update({ is_occupied: false })
     .eq('id', flatId)
 
-  if (tError || fError) throw new Error("Check-out failed")
+  if (fError) throw new Error("Failed to update flat status: " + fError.message)
 
   revalidatePath('/tenants')
   revalidatePath('/flats')

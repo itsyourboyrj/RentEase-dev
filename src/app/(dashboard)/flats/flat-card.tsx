@@ -47,7 +47,9 @@ export function FlatCard({ flat, tenant }: { flat: any; tenant: any }) {
                 {tenant.profile_url ? (
                   <img src={tenant.profile_url} className="h-full w-full object-cover" alt={tenant.name} />
                 ) : (
-                  tenant.name[0]
+                  typeof tenant.name === "string" && tenant.name.length > 0
+                    ? tenant.name[0]
+                    : "?"
                 )}
               </div>
               <div className="flex-1 min-w-0">
@@ -107,6 +109,7 @@ export function FlatCard({ flat, tenant }: { flat: any; tenant: any }) {
                         key={doc.id}
                         href={doc.file_url}
                         target="_blank"
+                        rel="noopener noreferrer"
                         className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 border hover:bg-muted transition-colors"
                       >
                         <FileText className="h-5 w-5 text-primary shrink-0" />

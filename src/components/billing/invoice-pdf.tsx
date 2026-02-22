@@ -19,7 +19,14 @@ const styles = StyleSheet.create({
 });
 
 export function InvoicePDF({ bill, tenant, owner }: { bill: any, tenant: any, owner: any }) {
-  const upiUrl = `upi://pay?pa=${owner?.upi_id}&pn=${owner?.full_name}&am=${bill.total_amount}&cu=INR`;
+  const upiUrl = owner?.upi_id && owner?.full_name && bill?.total_amount != null
+    ? `upi://pay?pa=${encodeURIComponent(owner.upi_id)}&pn=${encodeURIComponent(owner.full_name)}&am=${encodeURIComponent(bill.total_amount)}&cu=INR`
+    : null;
+
+  const prevReading = bill?.previous_reading ?? 0;
+  const currReading = bill?.current_reading ?? 0;
+  const units = currReading - prevReading;
+  const shortId = (bill?.id ?? '').slice(0, 8) || 'N/A';
 
   return (
     <Document>
@@ -27,7 +34,7 @@ export function InvoicePDF({ bill, tenant, owner }: { bill: any, tenant: any, ow
         <View style={styles.header}>
           <View>
             <Text style={styles.title}>INVOICE</Text>
-            <Text>#{bill.id.slice(0, 8)}</Text>
+            <Text>#{shortId}</Text>
           </View>
           <View style={{ textAlign: 'right' }}>
             <Text style={styles.bold}>{owner?.full_name}</Text>
@@ -38,9 +45,9 @@ export function InvoicePDF({ bill, tenant, owner }: { bill: any, tenant: any, ow
         <View style={styles.grid}>
           <View style={styles.col}>
             <Text style={styles.label}>Bill To:</Text>
-            <Text style={styles.bold}>{tenant.name}</Text>
-            <Text>{tenant.flats.buildings.name}</Text>
-            <Text>Flat: {tenant.flats.flat_code}</Text>
+            <Text style={styles.bold}>{tenant?.name}</Text>
+            <Text>{tenant?.flats?.buildings?.name}</Text>
+            <Text>Flat: {tenant?.flats?.flat_code}</Text>
           </View>
           <View style={styles.col}>
             <Text style={styles.label}>Billing Period:</Text>
@@ -66,8 +73,8 @@ export function InvoicePDF({ bill, tenant, owner }: { bill: any, tenant: any, ow
           </View>
           <View style={styles.tableRow}>
             <Text style={styles.cellMain}>
-              Electricity: {bill.current_reading - bill.previous_reading} units
-              (Prev: {bill.previous_reading} - Curr: {bill.current_reading})
+              Electricity: {isNaN(units) ? 0 : units} units
+              (Prev: {prevReading} - Curr: {currReading})
             </Text>
             <Text style={styles.cellRight}>₹{bill.electricity_amount}</Text>
           </View>
@@ -87,9 +94,11 @@ export function InvoicePDF({ bill, tenant, owner }: { bill: any, tenant: any, ow
           </View>
         )}
 
-        <Link style={styles.upiBtn} src={upiUrl}>
-          CLICK TO PAY NOW / अभी भुगतान करें
-        </Link>
+        {upiUrl && (
+          <Link style={styles.upiBtn} src={upiUrl}>
+            CLICK TO PAY NOW / अभी भुगतान करें
+          </Link>
+        )}
 
         <Text style={{ marginTop: 40, textAlign: 'center', color: '#9CA3AF', fontSize: 9 }}>
           This is a computer generated invoice. No signature required.

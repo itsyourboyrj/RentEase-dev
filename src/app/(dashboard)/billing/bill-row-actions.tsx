@@ -20,12 +20,16 @@ export function BillRowActions({ bill, owner }: { bill: any; owner: any }) {
     try {
       await updateBillStatus(bill.id, newStatus);
       toast.success(`Marked as ${newStatus}`);
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : String(e));
+      console.error(e);
     } finally {
       setPending(false);
     }
   }
+
+  const tenantName = bill.tenants?.name ?? 'tenant';
+  const billingMonth = bill.billing_month ?? 'unknown';
 
   return (
     <div className="flex justify-end gap-2">
@@ -33,16 +37,18 @@ export function BillRowActions({ bill, owner }: { bill: any; owner: any }) {
       <BillViewButton bill={bill} tenant={bill.tenants} owner={owner} />
 
       {/* PDF Download */}
-      <PDFDownloadLink
-        document={<InvoicePDF bill={bill} tenant={bill.tenants} owner={owner} />}
-        fileName={`Invoice_${bill.tenants.name}_${bill.billing_month}.pdf`}
-      >
-        {({ loading }) => (
-          <Button variant="outline" size="sm" disabled={loading}>
-            <FileDown className="h-4 w-4" />
-          </Button>
-        )}
-      </PDFDownloadLink>
+      {bill.tenants && (
+        <PDFDownloadLink
+          document={<InvoicePDF bill={bill} tenant={bill.tenants} owner={owner} />}
+          fileName={`Invoice_${tenantName}_${billingMonth}.pdf`}
+        >
+          {({ loading }) => (
+            <Button variant="outline" size="sm" disabled={loading} aria-label="Download invoice">
+              <FileDown className="h-4 w-4" />
+            </Button>
+          )}
+        </PDFDownloadLink>
+      )}
 
       {/* Status Dropdown */}
       <DropdownMenu>

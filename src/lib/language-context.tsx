@@ -17,13 +17,21 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   // Persist to localStorage
   useEffect(() => {
-    const saved = localStorage.getItem("lang") as Language | null;
-    if (saved === "en" || saved === "hi") setLanguageState(saved);
+    try {
+      const saved = localStorage.getItem("lang") as Language | null;
+      if (saved === "en" || saved === "hi") setLanguageState(saved);
+    } catch {
+      // localStorage unavailable (e.g., SSR or restricted environment)
+    }
   }, []);
 
   function setLanguage(lang: Language) {
     setLanguageState(lang);
-    localStorage.setItem("lang", lang);
+    try {
+      localStorage.setItem("lang", lang);
+    } catch {
+      // Persist failure is non-critical; state is already updated
+    }
   }
 
   return (

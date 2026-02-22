@@ -41,11 +41,13 @@ export default async function DashboardPage() {
 
   // 4. Fetch owner for UPI reminder message
   const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
   const { data: owner } = await supabase
     .from("owners")
     .select("upi_id")
-    .eq("id", user?.id)
-    .single();
+    .eq("id", user.id)
+    .maybeSingle();
 
   return (
     <div className="space-y-8">

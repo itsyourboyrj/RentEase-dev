@@ -15,14 +15,18 @@ export function CheckoutModal({ tenant }: { tenant: any }) {
   const [finalReading, setFinalReading] = useState(0);
 
   async function handleCheckout() {
+    if (!Number.isFinite(finalReading) || finalReading <= 0) {
+      toast.error("Please enter a valid final meter reading greater than zero.");
+      return;
+    }
     setLoading(true);
     try {
-      await checkoutTenant(tenant.id, tenant.flat_id);
+      await checkoutTenant(tenant.id, tenant.flat_id, finalReading);
       toast.success("Tenant checked out. Flat is now Vacant.");
       setOpen(false);
       window.location.reload();
     } catch (err: any) {
-      toast.error(err.message);
+      toast.error(err instanceof Error ? err.message : String(err));
       setLoading(false);
     }
   }
@@ -51,7 +55,7 @@ export function CheckoutModal({ tenant }: { tenant: any }) {
           </div>
 
           <div className="p-4 bg-muted rounded-lg text-sm">
-            <p>Security Deposit to Refund: <strong>₹{tenant.security_deposit}</strong></p>
+            <p>Security Deposit to Refund: <strong>₹{tenant.security_deposit ?? 0}</strong></p>
           </div>
 
           <Button

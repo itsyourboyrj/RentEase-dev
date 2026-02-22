@@ -5,7 +5,10 @@ import { BillingTable } from "./billing-table";
 export default async function BillingPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const { data: owner } = await supabase.from('owners').select('*').eq('id', user?.id).single();
+
+  if (!user) return <div>Unauthorized</div>;
+
+  const { data: owner } = await supabase.from('owners').select('*').eq('id', user.id).maybeSingle();
 
   const { data: bills } = await supabase
     .from("bills")

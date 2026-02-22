@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
+const ALLOWED_STATUSES = ['Paid', 'Advance Paid', 'Due', 'Pending', 'Cancelled'] as const
+
 export async function createBill(formData: FormData) {
   const supabase = await createClient()
 
@@ -49,6 +51,13 @@ export async function markAsPaid(billId: string) {
 export async function updateBillStatus(billId: string, newStatus: string) {
   const supabase = await createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  if (!ALLOWED_STATUSES.includes(newStatus as typeof ALLOWED_STATUSES[number])) {
+    throw new Error(`Invalid status: "${newStatus}". Allowed: ${ALLOWED_STATUSES.join(', ')}`)
+  }
+
   const { error } = await supabase
     .from('bills')
     .update({
@@ -63,7 +72,12 @@ export async function updateBillStatus(billId: string, newStatus: string) {
 }
 
 export async function deleteBills(billIds: string[]) {
+  if (!billIds.length) return
+
   const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
 
   const { error } = await supabase
     .from('bills')

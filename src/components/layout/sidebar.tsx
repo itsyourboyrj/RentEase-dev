@@ -80,10 +80,14 @@ export function Sidebar({ className }: { className?: string }) {
     setMounted(true);
     const supabase = createClient();
     async function loadOwner() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase.from("owners").select("full_name, profile_url").eq("id", user.id).single();
-        if (data) setOwner(data);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data } = await supabase.from("owners").select("full_name, profile_url").eq("id", user.id).single();
+          if (data) setOwner(data);
+        }
+      } catch (err) {
+        console.error('Failed to load owner profile:', err);
       }
     }
     loadOwner();
@@ -110,7 +114,7 @@ export function Sidebar({ className }: { className?: string }) {
         <div className="lg:hidden fixed top-4 left-4 z-50">
           <Sheet>
             <SheetTrigger asChild>
-              <button className="p-2 bg-primary text-white rounded-md shadow-lg">
+              <button aria-label="Open menu" className="p-2 bg-primary text-white rounded-md shadow-lg">
                 <Menu />
               </button>
             </SheetTrigger>

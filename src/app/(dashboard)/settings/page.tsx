@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
 import { useLanguage } from "@/components/language-provider";
 import { createClient } from "@/lib/supabase/client";
@@ -23,33 +23,79 @@ export default function SettingsPage() {
   const [owner, setOwner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
 
   // Instant preview states
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
   const [qrPreview, setQrPreview] = useState<string | null>(null);
 
+  // Deferred removals — applied on save, not immediately
+  const [pendingRemovals, setPendingRemovals] = useState<Set<'profile' | 'qr'>>(new Set());
+
+  // Track blob URLs for cleanup
+  const profileBlobRef = useRef<string | null>(null);
+  const qrBlobRef = useRef<string | null>(null);
+
   useEffect(() => {
     async function getOwner() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase.from("owners").select("*").eq("id", user.id).single();
-        setOwner(data);
-        if (data?.profile_url) setProfilePreview(data.profile_url);
-        if (data?.upi_qr_url) setQrPreview(data.upi_qr_url);
-        if (data?.preferred_lang) setLang(data.preferred_lang);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data } = await supabase.from("owners").select("*").eq("id", user.id).single();
+          setOwner(data);
+          if (data?.profile_url) setProfilePreview(data.profile_url);
+          if (data?.upi_qr_url) setQrPreview(data.upi_qr_url);
+          if (data?.preferred_lang) setLang(data.preferred_lang);
+        }
+      } catch {
+        toast.error("Failed to load settings");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     getOwner();
+
+    return () => {
+      // Revoke any blob URLs on unmount to free memory
+      if (profileBlobRef.current) URL.revokeObjectURL(profileBlobRef.current);
+      if (qrBlobRef.current) URL.revokeObjectURL(qrBlobRef.current);
+    };
   }, []);
 
   function handleImagePreview(e: React.ChangeEvent<HTMLInputElement>, type: "profile" | "qr") {
     const file = e.target.files?.[0];
-    if (file) {
+    if (!file) return;
+
+    if (type === "profile") {
+      if (profileBlobRef.current) URL.revokeObjectURL(profileBlobRef.current);
       const url = URL.createObjectURL(file);
-      if (type === "profile") setProfilePreview(url);
-      else setQrPreview(url);
+      profileBlobRef.current = url;
+      setProfilePreview(url);
+      // Cancel any pending removal since user is uploading a new file
+      setPendingRemovals(prev => { const next = new Set(prev); next.delete('profile'); return next; });
+    } else {
+      if (qrBlobRef.current) URL.revokeObjectURL(qrBlobRef.current);
+      const url = URL.createObjectURL(file);
+      qrBlobRef.current = url;
+      setQrPreview(url);
+      setPendingRemovals(prev => { const next = new Set(prev); next.delete('qr'); return next; });
     }
+  }
+
+  function markForRemoval(type: 'profile' | 'qr') {
+    if (type === 'profile') {
+      if (profileBlobRef.current) { URL.revokeObjectURL(profileBlobRef.current); profileBlobRef.current = null; }
+      setProfilePreview(null);
+      const input = document.querySelector<HTMLInputElement>('input[name="profileFile"]');
+      if (input) input.value = '';
+    } else {
+      if (qrBlobRef.current) { URL.revokeObjectURL(qrBlobRef.current); qrBlobRef.current = null; }
+      setQrPreview(null);
+      const input = document.querySelector<HTMLInputElement>('input[name="qrFile"]');
+      if (input) input.value = '';
+    }
+    setPendingRemovals(prev => new Set(prev).add(type));
   }
 
   async function handleSave(e: React.FormEvent<HTMLFormElement>) {
@@ -66,15 +112,55 @@ export default function SettingsPage() {
     try {
       const res = await updateOwnerSettings(formData);
       if (res?.success) {
+        // Apply deferred removals before showing success
+        try {
+          for (const type of pendingRemovals) {
+            await removeOwnerFile(type);
+          }
+          setPendingRemovals(new Set());
+        } catch (removalErr) {
+          toast.error(`Failed to remove file: ${removalErr instanceof Error ? removalErr.message : String(removalErr)}`);
+          setSaving(false);
+          return;
+        }
         toast.success("Settings saved! Refreshing...");
         setTimeout(() => window.location.reload(), 1000);
       } else {
         toast.error(res?.error || "Failed to save settings");
         setSaving(false);
       }
-    } catch (err) {
+    } catch {
       toast.error("An unexpected error occurred");
       setSaving(false);
+    }
+  }
+
+  async function handlePasswordChange(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const newPassword = formData.get('newPassword') as string;
+    const confirmPassword = formData.get('confirmPassword') as string;
+
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      const res = await updatePassword(formData);
+      if (res?.success) {
+        toast.success("Password updated successfully");
+        setPasswordDialogOpen(false);
+        form.reset();
+      } else {
+        toast.error(res?.error || "Failed to update password");
+      }
+    } catch {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setChangingPassword(false);
     }
   }
 
@@ -96,7 +182,10 @@ export default function SettingsPage() {
                   ? <img src={profilePreview} alt="Profile" className="h-full w-full object-cover" />
                   : (owner?.full_name?.[0] || "A")}
               </div>
-              <label className="absolute -bottom-2 -right-2 p-2 bg-primary text-white rounded-xl shadow-lg cursor-pointer hover:scale-110 transition-transform border-4 border-background">
+              <label
+                className="absolute -bottom-2 -right-2 p-2 bg-primary text-white rounded-xl shadow-lg cursor-pointer hover:scale-110 transition-transform border-4 border-background"
+                aria-label="Upload profile photo"
+              >
                 <Camera className="h-4 w-4" />
                 <input
                   type="file"
@@ -110,8 +199,9 @@ export default function SettingsPage() {
               {profilePreview && (
                 <button
                   type="button"
-                  onClick={() => { setProfilePreview(null); removeOwnerFile("profile"); }}
+                  onClick={() => markForRemoval('profile')}
                   className="absolute -top-2 -right-2 p-1 bg-destructive text-white rounded-full shadow-md"
+                  aria-label="Remove profile photo"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -148,7 +238,10 @@ export default function SettingsPage() {
                   {qrPreview
                     ? <img src={qrPreview} alt="QR Code" className="h-full w-full object-contain p-2" />
                     : <QrCode className="h-10 w-10 text-muted-foreground/20" />}
-                  <label className="absolute inset-0 bg-black/60 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity text-[10px] font-black tracking-tighter">
+                  <label
+                    className="absolute inset-0 bg-black/60 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity text-[10px] font-black tracking-tighter"
+                    aria-label="Upload QR code"
+                  >
                     UPLOAD QR
                     <input
                       type="file"
@@ -167,7 +260,7 @@ export default function SettingsPage() {
                       variant="link"
                       size="sm"
                       type="button"
-                      onClick={() => { setQrPreview(null); removeOwnerFile("qr"); }}
+                      onClick={() => markForRemoval('qr')}
                       className="p-0 h-auto text-destructive text-xs"
                     >
                       Remove QR
@@ -203,7 +296,7 @@ export default function SettingsPage() {
           <Card className="border-none shadow-lg bg-card">
             <CardHeader><CardTitle className="text-lg flex items-center gap-2"><Lock className="h-5 w-5 text-primary" /> Security</CardTitle></CardHeader>
             <CardContent>
-              <Dialog>
+              <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline" className="w-full gap-2 font-bold h-12">
                     <Lock className="h-4 w-4" /> Change Password
@@ -211,12 +304,23 @@ export default function SettingsPage() {
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader><DialogTitle>Change Password</DialogTitle></DialogHeader>
-                  <form action={updatePassword} className="space-y-4 pt-4">
+                  <form onSubmit={handlePasswordChange} className="space-y-4 pt-4">
                     <div className="space-y-2">
-                      <Label>New Password</Label>
-                      <Input name="newPassword" type="password" required minLength={6} />
+                      <Label htmlFor="currentPassword">Current Password</Label>
+                      <Input id="currentPassword" name="currentPassword" type="password" required />
                     </div>
-                    <Button type="submit" className="w-full">Update Password</Button>
+                    <div className="space-y-2">
+                      <Label htmlFor="newPassword">New Password</Label>
+                      <Input id="newPassword" name="newPassword" type="password" required minLength={8} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                      <Input id="confirmPassword" name="confirmPassword" type="password" required minLength={8} />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={changingPassword}>
+                      {changingPassword && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
+                      Update Password
+                    </Button>
                   </form>
                 </DialogContent>
               </Dialog>

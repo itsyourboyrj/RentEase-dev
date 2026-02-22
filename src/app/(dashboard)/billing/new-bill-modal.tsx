@@ -38,14 +38,19 @@ export function NewBillModal({ tenants, owner }: { tenants: any[], owner: any })
     }
   }
 
+  const upiPayLink = owner?.upi_id && owner?.full_name && generatedBill?.total_amount != null
+    ? `upi://pay?pa=${encodeURIComponent(owner.upi_id)}&pn=${encodeURIComponent(owner.full_name)}&am=${encodeURIComponent(generatedBill.total_amount)}&cu=INR`
+    : '';
+
   const whatsappMessage =
     `*Rent Invoice / किराया चालान*\n\n` +
     `Hi ${tenant?.name}, your rent for ${generatedBill?.billing_month} is ₹${generatedBill?.total_amount}.\n` +
     `नमस्ते ${tenant?.name}, ${generatedBill?.billing_month} के लिए आपका किराया ₹${generatedBill?.total_amount} है।\n\n` +
-    `*Pay Now / अभी भुगतान करें:* upi://pay?pa=${owner?.upi_id}&pn=${owner?.full_name}&am=${generatedBill?.total_amount}&cu=INR\n\n` +
+    (upiPayLink ? `*Pay Now / अभी भुगतान करें:* ${upiPayLink}\n\n` : '') +
     `Thank you! / धन्यवाद!`;
 
-  const whatsappUrl = `https://wa.me/${tenant?.phone}?text=${encodeURIComponent(whatsappMessage)}`;
+  const phone = tenant?.phone ? tenant.phone.replace(/\D/g, '').replace(/^\+/, '') : '';
+  const whatsappUrl = phone ? `https://wa.me/${phone}?text=${encodeURIComponent(whatsappMessage)}` : '';
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -139,7 +144,8 @@ export function NewBillModal({ tenants, owner }: { tenants: any[], owner: any })
 
               <Button
                 className="w-full bg-green-600 hover:bg-green-700"
-                onClick={() => window.open(whatsappUrl)}
+                disabled={!whatsappUrl}
+                onClick={() => whatsappUrl && window.open(whatsappUrl)}
               >
                 Share via WhatsApp
               </Button>

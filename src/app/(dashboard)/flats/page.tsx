@@ -6,7 +6,7 @@ export default async function AllFlatsPage() {
   const supabase = await createClient();
 
   // Fetch flats along with their current active tenant and documents
-  const { data: flats } = await supabase
+  const { data: flats, error } = await supabase
     .from("flats")
     .select(`
       *,
@@ -17,6 +17,8 @@ export default async function AllFlatsPage() {
       )
     `)
     .order('flat_code', { ascending: true });
+
+  if (error) throw new Error(error.message);
 
   return (
     <div className="space-y-8 pb-10">

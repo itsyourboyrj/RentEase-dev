@@ -25,11 +25,25 @@ function TenantProfileContent({ id }: { id: string }) {
   const supabase = createClient();
 
   const fetchData = async () => {
-    const { data: t } = await supabase.from("tenants").select("*, flats(*, buildings(*))").eq("id", id).single();
-    const { data: d } = await supabase.from("documents").select("*").eq("tenant_id", id);
-    setTenant(t);
-    setDocs(d || []);
-    setLoading(false);
+    try {
+      const { data: t, error: tenantError } = await supabase.from("tenants").select("*, flats(*, buildings(*))").eq("id", id).single();
+      if (tenantError) {
+        toast.error(`Failed to load tenant: ${tenantError.message}`);
+        return;
+      }
+      const { data: d, error: docsError } = await supabase.from("documents").select("*").eq("tenant_id", id);
+      if (docsError) {
+        toast.error(`Failed to load documents: ${docsError.message}`);
+        return;
+      }
+      setTenant(t);
+      setDocs(d || []);
+    } catch (err) {
+      console.error("Unexpected error loading tenant data:", err);
+      toast.error("Failed to load tenant data");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchData(); }, [id]);
@@ -42,21 +56,21 @@ function TenantProfileContent({ id }: { id: string }) {
       toast.success("Document uploaded!");
       fetchData();
       (e.target as HTMLFormElement).reset();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Upload failed");
     }
   }
 
   async function handleProfileUpdate(e: React.ChangeEvent<HTMLInputElement>) {
-    if (!e.target.files?.[0]) return;
+    if (!e.target.files?.[0] || !tenant) return;
     const formData = new FormData();
     formData.append("file", e.target.files[0]);
     try {
       await updateProfilePicture(tenant.id, formData);
       toast.success("Profile picture updated!");
       fetchData();
-    } catch (err) {
-      toast.error("Update failed");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Update failed");
     }
   }
 
@@ -66,8 +80,8 @@ function TenantProfileContent({ id }: { id: string }) {
       await deleteDocument(docId, url);
       toast.success("Document removed");
       fetchData();
-    } catch (err) {
-      toast.error("Delete failed");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Delete failed");
     }
   }
 
@@ -87,19 +101,24 @@ function TenantProfileContent({ id }: { id: string }) {
               {tenant.profile_url ? (
                 <img src={tenant.profile_url} className="h-full w-full object-cover" alt={tenant.name} />
               ) : (
-                tenant.name[0]
+                tenant.name?.[0] ?? "?"
               )}
             </div>
 
-            <label className="absolute -bottom-2 -right-2 p-2 bg-primary text-white rounded-lg shadow-lg cursor-pointer hover:scale-110 transition-transform">
+            <label className="absolute -bottom-2 -right-2 p-2 bg-primary text-white rounded-lg shadow-lg cursor-pointer hover:scale-110 transition-transform" aria-label="Upload profile photo">
               <Camera className="h-4 w-4" />
               <input type="file" className="hidden" onChange={handleProfileUpdate} accept="image/*" />
             </label>
 
             {tenant.profile_url && (
               <button
-                onClick={() => removeProfilePicture(tenant.id).then(() => fetchData())}
+                onClick={() =>
+                  removeProfilePicture(tenant.id)
+                    .then(() => fetchData())
+                    .catch((err: unknown) => toast.error(err instanceof Error ? err.message : "Remove failed"))
+                }
                 className="absolute -top-2 -right-2 p-1 bg-destructive text-white rounded-full shadow-lg"
+                aria-label="Remove profile photo"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -131,9 +150,9 @@ function TenantProfileContent({ id }: { id: string }) {
         <Card className="shadow-lg border-none bg-primary/5">
           <CardHeader><CardTitle className="text-lg">Room Info</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex justify-between"><span>Building:</span><strong>{tenant.flats.buildings.name}</strong></div>
-            <div className="flex justify-between"><span>Flat No:</span><strong>{tenant.flats.flat_code}</strong></div>
-            <div className="flex justify-between"><span>Rent:</span><strong className="text-primary text-xl">₹{tenant.flats.rent_amount}</strong></div>
+            <div className="flex justify-between"><span>Building:</span><strong>{tenant.flats?.buildings?.name ?? "N/A"}</strong></div>
+            <div className="flex justify-between"><span>Flat No:</span><strong>{tenant.flats?.flat_code ?? "N/A"}</strong></div>
+            <div className="flex justify-between"><span>Rent:</span><strong className="text-primary text-xl">₹{tenant.flats?.rent_amount ?? "—"}</strong></div>
           </CardContent>
         </Card>
       </div>
@@ -165,10 +184,11 @@ function TenantProfileContent({ id }: { id: string }) {
                   <button
                     onClick={() => handleDeleteDoc(doc.id, doc.file_url)}
                     className="absolute top-2 right-2 p-1.5 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-label="Delete document"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
-                  <a href={doc.file_url} target="_blank">
+                  <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
                     <FileText className="h-8 w-8 mx-auto text-primary mb-2" />
                     <p className="text-xs font-bold truncate">{doc.name}</p>
                   </a>

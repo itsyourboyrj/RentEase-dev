@@ -9,26 +9,6 @@ import { Building2, DoorOpen, Users, IndianRupee, AlertCircle } from "lucide-rea
 import Link from "next/link";
 import { RemindButton } from "@/components/dashboard/remind-button";
 
-interface UnpaidBill {
-  total_amount: number;
-}
-
-interface OverdueBill {
-  id: string;
-  total_amount: number;
-  is_paid: boolean;
-  tenants: {
-    name: string;
-    phone: string;
-    flats: { flat_code: string };
-  };
-  [key: string]: unknown;
-}
-
-interface Owner {
-  upi_id: string | null;
-}
-
 export default async function DashboardPage() {
   const supabase = await createClient();
 
@@ -41,7 +21,7 @@ export default async function DashboardPage() {
   const { data: unpaidBills } = await supabase
     .from("bills")
     .select("total_amount")
-    .eq("is_paid", false) as { data: UnpaidBill[] | null };
+    .eq("is_paid", false);
 
   const totalDues = unpaidBills?.reduce((sum, bill) => sum + Number(bill.total_amount), 0) || 0;
 
@@ -57,7 +37,7 @@ export default async function DashboardPage() {
       )
     `)
     .eq("is_paid", false)
-    .limit(5) as { data: OverdueBill[] | null };
+    .limit(5);
 
   // 4. Fetch owner for UPI reminder message
   const { data: { user } } = await supabase.auth.getUser();
@@ -67,7 +47,7 @@ export default async function DashboardPage() {
     .from("owners")
     .select("upi_id")
     .eq("id", user.id)
-    .maybeSingle() as { data: Owner | null };
+    .maybeSingle();
 
   return (
     <div className="space-y-8">

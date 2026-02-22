@@ -1,5 +1,5 @@
 import { createBrowserClient } from '@supabase/ssr'
-import { Database } from '@/types/database'
+import { Database } from '@/lib/supabase/database.types'
 
 export function createClient() {
   // This creates a connection to Supabase using the variables in your .env.local

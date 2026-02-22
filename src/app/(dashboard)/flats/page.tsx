@@ -2,6 +2,30 @@ import { createClient } from "@/lib/supabase/server";
 import { FlatCard } from "./flat-card";
 import { DoorOpen } from "lucide-react";
 
+interface Document {
+  id: string;
+  [key: string]: unknown;
+}
+
+interface Tenant {
+  id: string;
+  is_active: boolean;
+  documents: Document[];
+  [key: string]: unknown;
+}
+
+interface FlatWithRelations {
+  id: string;
+  flat_code: string;
+  floor: number;
+  rent_amount: number;
+  is_occupied: boolean;
+  building_id: string;
+  buildings: { name: string } | null;
+  tenants: Tenant[];
+  [key: string]: unknown;
+}
+
 export default async function AllFlatsPage() {
   const supabase = await createClient();
 
@@ -16,7 +40,7 @@ export default async function AllFlatsPage() {
         documents(*)
       )
     `)
-    .order('flat_code', { ascending: true });
+    .order('flat_code', { ascending: true }) as { data: FlatWithRelations[] | null; error: { message: string } | null };
 
   if (error) throw new Error(error.message);
 

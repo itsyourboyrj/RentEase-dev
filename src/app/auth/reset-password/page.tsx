@@ -36,46 +36,23 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const supabase = createClient();
-    const hash = window.location.hash;
-    const code = new URLSearchParams(window.location.search).get("code");
 
-    if (hash && hash.includes("access_token")) {
-      // Implicit flow: token is in the URL hash fragment
-      const hashParams = new URLSearchParams(hash.substring(1));
-      const accessToken = hashParams.get("access_token");
-      const refreshToken = hashParams.get("refresh_token") ?? "";
-
-      if (accessToken) {
-        supabase.auth
-          .setSession({ access_token: accessToken, refresh_token: refreshToken })
-          .then(({ error }) => {
-            if (error) {
-              toast.error("Session expired. Please request a new reset link.");
-              router.push("/login");
-            } else {
-              setSessionReady(true);
-            }
-          });
-      } else {
-        toast.error("Invalid reset link.");
-        router.push("/login");
+    // The @supabase/ssr browser client automatically reads the #access_token hash
+    // fragment and fires onAuthStateChange with event = "PASSWORD_RECOVERY".
+    // We must listen for this event rather than parsing the URL manually.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
+        setSessionReady(true);
       }
-    } else if (code) {
-      // PKCE flow: exchange the code for a session client-side
-      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-        if (error) {
-          toast.error("Session expired. Please request a new reset link.");
-          router.push("/login");
-        } else {
-          setSessionReady(true);
-        }
-      });
-    } else {
-      // Neither — should not happen in normal flow
-      toast.error("Invalid reset link.");
-      router.push("/login");
-    }
-  }, [router]);
+    });
+
+    // Also handle PKCE flow (?code= in URL) or an already-active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setSessionReady(true);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   async function handleReset(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -98,7 +75,6 @@ export default function ResetPasswordPage() {
       toast.error(error.message);
       setLoading(false);
     } else {
-      // Sign out so they must log in fresh with the new password
       await supabase.auth.signOut();
       toast.success("Password updated! Please log in with your new password.");
       router.push("/login");
@@ -168,7 +144,7 @@ export default function ResetPasswordPage() {
                   </div>
                   <div className="flex justify-between items-center">
                     <p className="text-[11px] text-muted-foreground">
-                      Must include uppercase, lowercase &amp; special character
+                      Uppercase, lowercase &amp; special character required
                     </p>
                     <p className={`text-[11px] font-bold ${
                       strength.score <= 1 ? "text-red-500" :

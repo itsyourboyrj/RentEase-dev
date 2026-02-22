@@ -1,0 +1,138 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Plus, Calculator } from "lucide-react";
+import { createBill } from "@/app/billing/actions";
+import { toast } from "sonner";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import { InvoicePDF } from "@/components/billing/invoice-pdf";
+
+export function NewBillModal({ tenants }: { tenants: any[] }) {
+  const [open, setOpen] = useState(false);
+  const [selectedTenantId, setSelectedTenantId] = useState("");
+  const [prevReading, setPrevReading] = useState(0);
+  const [currReading, setCurrReading] = useState(0);
+  const [generatedBill, setGeneratedBill] = useState<any>(null);
+
+  const tenant = tenants.find(t => t.id === selectedTenantId);
+
+  // Auto-calculate
+  const units = Math.max(0, currReading - prevReading);
+  const elecRate = tenant?.flats?.buildings?.electricity_rate || 8;
+  const elecAmount = units * elecRate;
+  const rentAmount = tenant?.flats?.rent_amount || 0;
+  const totalAmount = elecAmount + rentAmount;
+
+  async function handleSubmit(formData: FormData) {
+    try {
+      const bill = await createBill(formData);
+      setGeneratedBill(bill);
+      toast.success("Bill generated successfully!");
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  }
+
+  const whatsappMessage = `Hi ${tenant?.name}, your rent for ${generatedBill?.billing_month} is ₹${generatedBill?.total_amount}. Electricity: ${units} units. Total: ₹${generatedBill?.total_amount}.`;
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button className="bg-amber-600 hover:bg-amber-700">
+          <Plus className="mr-2 h-4 w-4" /> Generate Bill
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Generate Monthly Bill</DialogTitle>
+        </DialogHeader>
+
+        {!generatedBill ? (
+          <form action={handleSubmit} className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label>Select Tenant</Label>
+              <Select name="tenant_id" onValueChange={setSelectedTenantId} required>
+                <SelectTrigger><SelectValue placeholder="Select Tenant" /></SelectTrigger>
+                <SelectContent>
+                  {tenants.map(t => (
+                    <SelectItem key={t.id} value={t.id}>{t.name} ({t.flats.flat_code})</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Billing Month</Label>
+                <Input name="billing_month" type="month" defaultValue={new Date().toISOString().slice(0, 7)} required />
+              </div>
+              <div className="space-y-2">
+                <Label>Rent (₹)</Label>
+                <Input name="rent_amount" value={rentAmount} readOnly className="bg-muted" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Previous Reading</Label>
+                <Input name="previous_reading" type="number" onChange={(e) => setPrevReading(Number(e.target.value))} required />
+              </div>
+              <div className="space-y-2">
+                <Label>Current Reading</Label>
+                <Input name="current_reading" type="number" onChange={(e) => setCurrReading(Number(e.target.value))} required />
+              </div>
+            </div>
+
+            <div className="p-4 bg-primary/5 rounded-lg space-y-2 border border-primary/20">
+              <div className="flex justify-between text-sm">
+                <span>Electricity ({units} units × ₹{elecRate})</span>
+                <span>₹{elecAmount}</span>
+              </div>
+              <div className="flex justify-between font-bold text-lg border-t pt-2">
+                <span>Total Amount</span>
+                <span>₹{totalAmount}</span>
+              </div>
+              <input type="hidden" name="electricity_amount" value={elecAmount} />
+              <input type="hidden" name="total_amount" value={totalAmount} />
+            </div>
+
+            <Button type="submit" className="w-full">Save & Generate Invoice</Button>
+          </form>
+        ) : (
+          <div className="py-6 text-center space-y-4">
+            <div className="flex justify-center"><Calculator className="h-12 w-12 text-green-500" /></div>
+            <h3 className="text-xl font-bold">Bill Generated!</h3>
+            <div className="flex flex-col gap-2">
+              <PDFDownloadLink
+                document={<InvoicePDF bill={generatedBill} tenant={tenant} />}
+                fileName={`Invoice_${tenant.name}_${generatedBill.billing_month}.pdf`}
+              >
+                {({ loading }) => (
+                  <Button className="w-full" variant="outline">
+                    {loading ? "Preparing PDF..." : "Download PDF Invoice"}
+                  </Button>
+                )}
+              </PDFDownloadLink>
+
+              <Button
+                className="w-full bg-green-600 hover:bg-green-700"
+                onClick={() => window.open(`https://wa.me/${tenant.phone}?text=${encodeURIComponent(whatsappMessage)}`)}
+              >
+                Share via WhatsApp
+              </Button>
+
+              <Button variant="ghost" onClick={() => { setGeneratedBill(null); setOpen(false); }}>
+                Done
+              </Button>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}

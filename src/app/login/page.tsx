@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogDescription
 } from "@/components/ui/dialog";
-import { Building2, ArrowRight, Loader2, CheckCircle2, ShieldKeyhole } from "lucide-react";
+import { Building2, ArrowRight, Loader2, CheckCircle2, Shield } from "lucide-react";
 import { toast } from "sonner";
 
 type View = "login" | "signup" | "forgot" | "otp-request" | "otp-verify";
@@ -209,7 +209,7 @@ export default function LoginPage() {
                     className="w-full h-12 border-none bg-muted/20 hover:bg-muted/40"
                     onClick={() => setView("otp-request")}
                   >
-                    <ShieldKeyhole className="mr-2 h-4 w-4" /> Use Email OTP Instead
+                    <Shield className="mr-2 h-4 w-4" /> Use Email OTP Instead
                   </Button>
                 ) : (
                   <Button

@@ -22,6 +22,23 @@ import { Plus, Building, DoorOpen, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { createFlat } from "@/app/flats/actions";
 
+interface Building {
+  id: string;
+  name: string;
+  address: string;
+  [key: string]: unknown;
+}
+
+interface Flat {
+  id: string;
+  flat_code: string;
+  floor: number;
+  rent_amount: number;
+  is_occupied: boolean;
+  building_id: string;
+  [key: string]: unknown;
+}
+
 export default async function BuildingDetailPage({ params }: { params: { id: string } }) {
   const supabase = await createClient();
   const { id } = await params;
@@ -31,7 +48,7 @@ export default async function BuildingDetailPage({ params }: { params: { id: str
     .from("buildings")
     .select("*")
     .eq("id", id)
-    .single();
+    .single() as { data: Building | null };
 
   if (!building) return notFound();
 
@@ -40,7 +57,7 @@ export default async function BuildingDetailPage({ params }: { params: { id: str
     .from("flats")
     .select("*")
     .eq("building_id", id)
-    .order("flat_code", { ascending: true });
+    .order("flat_code", { ascending: true }) as { data: Flat[] | null };
 
   return (
     <div className="space-y-6">

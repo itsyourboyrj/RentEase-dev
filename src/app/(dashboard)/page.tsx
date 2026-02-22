@@ -7,6 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Building2, DoorOpen, Users, IndianRupee, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { RemindButton } from "@/components/dashboard/remind-button";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -24,18 +25,27 @@ export default async function DashboardPage() {
 
   const totalDues = unpaidBills?.reduce((sum, bill) => sum + Number(bill.total_amount), 0) || 0;
 
-  // 3. Fetch Recent Overdue Bills for the "Attention" table
+  // 3. Fetch Recent Overdue Bills with tenant phone for WhatsApp reminder
   const { data: overdueBills } = await supabase
     .from("bills")
     .select(`
       *,
       tenants (
         name,
+        phone,
         flats (flat_code)
       )
     `)
     .eq("is_paid", false)
     .limit(5);
+
+  // 4. Fetch owner for UPI reminder message
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: owner } = await supabase
+    .from("owners")
+    .select("upi_id")
+    .eq("id", user?.id)
+    .single();
 
   return (
     <div className="space-y-8">
@@ -92,9 +102,7 @@ export default async function DashboardPage() {
                       <TableCell>{bill.tenants.flats.flat_code}</TableCell>
                       <TableCell className="text-destructive font-bold">₹{bill.total_amount.toLocaleString()}</TableCell>
                       <TableCell className="text-right">
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href="/billing">Remind</Link>
-                        </Button>
+                        <RemindButton tenant={bill.tenants} bill={bill} owner={owner} />
                       </TableCell>
                     </TableRow>
                   ))

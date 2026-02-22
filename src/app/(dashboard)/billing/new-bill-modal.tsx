@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { InvoicePDF } from "@/components/billing/invoice-pdf";
 
-export function NewBillModal({ tenants }: { tenants: any[] }) {
+export function NewBillModal({ tenants, owner }: { tenants: any[], owner: any }) {
   const [open, setOpen] = useState(false);
   const [selectedTenantId, setSelectedTenantId] = useState("");
   const [prevReading, setPrevReading] = useState(0);
@@ -38,7 +38,14 @@ export function NewBillModal({ tenants }: { tenants: any[] }) {
     }
   }
 
-  const whatsappMessage = `Hi ${tenant?.name}, your rent for ${generatedBill?.billing_month} is ₹${generatedBill?.total_amount}. Electricity: ${units} units. Total: ₹${generatedBill?.total_amount}.`;
+  const whatsappMessage =
+    `*Rent Invoice / किराया चालान*\n\n` +
+    `Hi ${tenant?.name}, your rent for ${generatedBill?.billing_month} is ₹${generatedBill?.total_amount}.\n` +
+    `नमस्ते ${tenant?.name}, ${generatedBill?.billing_month} के लिए आपका किराया ₹${generatedBill?.total_amount} है।\n\n` +
+    `*Pay Now / अभी भुगतान करें:* upi://pay?pa=${owner?.upi_id}&pn=${owner?.full_name}&am=${generatedBill?.total_amount}&cu=INR\n\n` +
+    `Thank you! / धन्यवाद!`;
+
+  const whatsappUrl = `https://wa.me/${tenant?.phone}?text=${encodeURIComponent(whatsappMessage)}`;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -79,6 +86,17 @@ export function NewBillModal({ tenants }: { tenants: any[] }) {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
+                <Label>Period Start Date</Label>
+                <Input name="billing_start_date" type="date" required />
+              </div>
+              <div className="space-y-2">
+                <Label>Period End Date</Label>
+                <Input name="billing_end_date" type="date" required />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
                 <Label>Previous Reading</Label>
                 <Input name="previous_reading" type="number" onChange={(e) => setPrevReading(Number(e.target.value))} required />
               </div>
@@ -109,7 +127,7 @@ export function NewBillModal({ tenants }: { tenants: any[] }) {
             <h3 className="text-xl font-bold">Bill Generated!</h3>
             <div className="flex flex-col gap-2">
               <PDFDownloadLink
-                document={<InvoicePDF bill={generatedBill} tenant={tenant} />}
+                document={<InvoicePDF bill={generatedBill} tenant={tenant} owner={owner} />}
                 fileName={`Invoice_${tenant.name}_${generatedBill.billing_month}.pdf`}
               >
                 {({ loading }) => (
@@ -121,7 +139,7 @@ export function NewBillModal({ tenants }: { tenants: any[] }) {
 
               <Button
                 className="w-full bg-green-600 hover:bg-green-700"
-                onClick={() => window.open(`https://wa.me/${tenant.phone}?text=${encodeURIComponent(whatsappMessage)}`)}
+                onClick={() => window.open(whatsappUrl)}
               >
                 Share via WhatsApp
               </Button>

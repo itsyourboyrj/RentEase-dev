@@ -16,6 +16,8 @@ export async function createTenant(formData: FormData) {
   const join_date = formData.get('join_date') as string
   const security_deposit = parseFloat(formData.get('security_deposit') as string)
   const meter_number = formData.get('meter_number') as string
+  const emergency_contact = formData.get('emergency_contact') as string
+  const address = formData.get('address') as string
 
   // 1. Create the tenant
   const { error: tenantError } = await supabase.from('tenants').insert({
@@ -27,6 +29,8 @@ export async function createTenant(formData: FormData) {
     join_date,
     security_deposit,
     meter_number,
+    emergency_contact,
+    address,
     is_active: true
   })
 
@@ -39,6 +43,30 @@ export async function createTenant(formData: FormData) {
     .eq('id', flat_id)
 
   if (flatError) throw new Error(flatError.message)
+
+  revalidatePath('/tenants')
+  revalidatePath('/flats')
+}
+
+export async function checkoutTenant(tenantId: string, flatId: string) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error("Unauthorized")
+
+  // 1. Mark tenant as inactive
+  const { error: tError } = await supabase
+    .from('tenants')
+    .update({ is_active: false, checkout_date: new Date().toISOString() })
+    .eq('id', tenantId)
+
+  // 2. Mark flat as vacant
+  const { error: fError } = await supabase
+    .from('flats')
+    .update({ is_occupied: false })
+    .eq('id', flatId)
+
+  if (tError || fError) throw new Error("Check-out failed")
 
   revalidatePath('/tenants')
   revalidatePath('/flats')

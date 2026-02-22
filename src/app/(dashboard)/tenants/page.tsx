@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Users, Phone, Home } from "lucide-react";
+import Link from "next/link";
 import { AddTenantModal } from "./add-tenant-modal";
 
 export default async function TenantsPage() {
@@ -99,7 +100,9 @@ export default async function TenantsPage() {
                   <TableCell>{new Date(tenant.join_date).toLocaleDateString()}</TableCell>
                   <TableCell>₹{tenant.security_deposit?.toLocaleString()}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">View Profile</Button>
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href={`/tenants/${tenant.id}`}>View Profile</Link>
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))

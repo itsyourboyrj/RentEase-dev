@@ -8,6 +8,8 @@ export async function createBill(formData: FormData) {
 
   const tenant_id = formData.get('tenant_id') as string
   const billing_month = formData.get('billing_month') as string
+  const billing_start_date = formData.get('billing_start_date') as string
+  const billing_end_date = formData.get('billing_end_date') as string
   const previous_reading = parseFloat(formData.get('previous_reading') as string)
   const current_reading = parseFloat(formData.get('current_reading') as string)
   const electricity_amount = parseFloat(formData.get('electricity_amount') as string)
@@ -17,6 +19,8 @@ export async function createBill(formData: FormData) {
   const { data, error } = await supabase.from('bills').insert({
     tenant_id,
     billing_month,
+    billing_start_date,
+    billing_end_date,
     previous_reading,
     current_reading,
     electricity_amount,
@@ -40,4 +44,33 @@ export async function markAsPaid(billId: string) {
 
   if (error) throw new Error(error.message)
   revalidatePath('/billing')
+}
+
+export async function updateBillStatus(billId: string, newStatus: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('bills')
+    .update({
+      status: newStatus,
+      is_paid: newStatus === 'Paid' || newStatus === 'Advance Paid'
+    })
+    .eq('id', billId)
+
+  if (error) throw new Error(error.message)
+  revalidatePath('/billing')
+  revalidatePath('/')
+}
+
+export async function deleteBills(billIds: string[]) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('bills')
+    .delete()
+    .in('id', billIds)
+
+  if (error) throw new Error(error.message)
+  revalidatePath('/billing')
+  revalidatePath('/')
 }

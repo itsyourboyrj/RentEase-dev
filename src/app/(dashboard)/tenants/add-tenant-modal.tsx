@@ -46,7 +46,7 @@ export function AddTenantModal({ buildings, vacantFlats }: { buildings: any[], v
           <Plus className="mr-2 h-4 w-4" /> Add Tenant
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Onboard New Tenant</DialogTitle>
         </DialogHeader>
@@ -83,6 +83,16 @@ export function AddTenantModal({ buildings, vacantFlats }: { buildings: any[], v
           <div className="space-y-2">
             <Label htmlFor="name">Tenant Full Name</Label>
             <Input id="name" name="name" placeholder="Ramesh Kumar" required />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="emergency_contact">Emergency Contact (Name & Phone)</Label>
+            <Input id="emergency_contact" name="emergency_contact" placeholder="Sita Devi - 9876543211" />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="address">Permanent Address</Label>
+            <Input id="address" name="address" placeholder="123, Street Name, City" />
           </div>
 
           <div className="grid grid-cols-2 gap-4">

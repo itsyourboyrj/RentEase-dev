@@ -31,7 +31,6 @@ export interface Database {
           email?: string | null
           created_at?: string
         }
-        Relationships: []
       }
       buildings: {
         Row: {
@@ -58,7 +57,6 @@ export interface Database {
           electricity_rate?: number
           created_at?: string
         }
-        Relationships: []
       }
       flats: {
         Row: {
@@ -88,7 +86,6 @@ export interface Database {
           is_occupied?: boolean
           created_at?: string
         }
-        Relationships: []
       }
       tenants: {
         Row: {
@@ -104,6 +101,8 @@ export interface Database {
           meter_number: string | null
           is_active: boolean
           created_at: string
+          emergency_contact: string | null
+          address: string | null
         }
         Insert: {
           id?: string
@@ -118,6 +117,8 @@ export interface Database {
           meter_number?: string | null
           is_active?: boolean
           created_at?: string
+          emergency_contact?: string | null
+          address?: string | null
         }
         Update: {
           id?: string
@@ -132,14 +133,17 @@ export interface Database {
           meter_number?: string | null
           is_active?: boolean
           created_at?: string
+          emergency_contact?: string | null
+          address?: string | null
         }
-        Relationships: []
       }
       bills: {
         Row: {
           id: string
           tenant_id: string
           billing_month: string
+          billing_start_date: string | null
+          billing_end_date: string | null
           previous_reading: number
           current_reading: number
           units_consumed: number | null
@@ -154,6 +158,8 @@ export interface Database {
           id?: string
           tenant_id: string
           billing_month: string
+          billing_start_date?: string | null
+          billing_end_date?: string | null
           previous_reading: number
           current_reading: number
           electricity_amount: number
@@ -167,6 +173,8 @@ export interface Database {
           id?: string
           tenant_id?: string
           billing_month?: string
+          billing_start_date?: string | null
+          billing_end_date?: string | null
           previous_reading?: number
           current_reading?: number
           electricity_amount?: number
@@ -176,20 +184,33 @@ export interface Database {
           pdf_url?: string | null
           created_at?: string
         }
-        Relationships: []
       }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
+      documents: {
+        Row: {
+          id: string
+          tenant_id: string
+          name: string
+          file_url: string
+          file_type: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          name: string
+          file_url: string
+          file_type?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          name?: string
+          file_url?: string
+          file_type?: string | null
+          created_at?: string
+        }
+      }
     }
   }
 }

@@ -4,15 +4,19 @@ import { NextResponse } from 'next/server'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/'
+  const next = searchParams.get('next') ?? '/auth/reset-password'
 
   if (code) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
+
     if (!error) {
+      if (next === '/auth/reset-password') {
+        return NextResponse.redirect(`${origin}/auth/reset-password`)
+      }
       return NextResponse.redirect(`${origin}${next}`)
     }
   }
 
-  return NextResponse.redirect(`${origin}/login?error=Invalid or expired reset link`)
+  return NextResponse.redirect(`${origin}/login?error=link_invalid_or_expired`)
 }

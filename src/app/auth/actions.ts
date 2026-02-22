@@ -2,7 +2,6 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 export async function login(formData: FormData) {
@@ -45,12 +44,13 @@ export async function requestPasswordReset(formData: FormData) {
   const supabase = await createClient()
   const email = formData.get('email') as string
 
-  const host = (await headers()).get('host')
-  const protocol = host?.includes('localhost') ? 'http' : 'https'
-  const origin = `${protocol}://${host}`
+  const resetUrl = process.env.NEXT_PUBLIC_APP_URL
+  if (!resetUrl) {
+    return { error: 'NEXT_PUBLIC_APP_URL is not configured' }
+  }
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/auth/callback?next=/auth/reset-password`,
+    redirectTo: `${resetUrl}/auth/callback?next=/auth/reset-password`,
   })
 
   if (error) return { error: error.message }

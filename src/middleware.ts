@@ -27,18 +27,16 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // This refreshes the session if it's expired
-  const { data: { user } } = await supabase.auth.getUser()
+  // --- THE BULLETPROOF LOGIC ---
+  const path = request.nextUrl.pathname
 
-  const isAuthPage = request.nextUrl.pathname.startsWith('/login')
-  const isAuthCallback = request.nextUrl.pathname.startsWith('/auth')
-
-  // CRITICAL: Let all auth routes through unconditionally
-  if (isAuthCallback || isAuthPage) {
+  // 1. Allow all auth-related paths to bypass the bouncer completely
+  if (path.startsWith('/auth') || path.startsWith('/login')) {
     return supabaseResponse
   }
 
-  // If no user, redirect to login
+  // 2. For all other pages, check the user
+  const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return NextResponse.redirect(new URL('/login', request.url))
   }

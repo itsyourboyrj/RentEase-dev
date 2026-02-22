@@ -67,6 +67,34 @@ export async function updatePasswordAction(formData: FormData) {
   redirect('/')
 }
 
+export async function sendOTP(formData: FormData) {
+  const supabase = await createClient()
+  const email = formData.get('email') as string
+
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: { shouldCreateUser: true },
+  })
+
+  if (error) return { error: error.message }
+  return { success: true }
+}
+
+export async function verifyOTP(email: string, token: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: 'email',
+  })
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/', 'layout')
+  redirect('/')
+}
+
 export async function signout() {
   const supabase = await createClient()
   await supabase.auth.signOut()

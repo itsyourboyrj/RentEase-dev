@@ -31,6 +31,7 @@ export interface Database {
           email?: string | null
           created_at?: string
         }
+        Relationships: []
       }
       buildings: {
         Row: {
@@ -57,6 +58,7 @@ export interface Database {
           electricity_rate?: number
           created_at?: string
         }
+        Relationships: []
       }
       flats: {
         Row: {
@@ -86,6 +88,7 @@ export interface Database {
           is_occupied?: boolean
           created_at?: string
         }
+        Relationships: []
       }
       tenants: {
         Row: {
@@ -130,6 +133,7 @@ export interface Database {
           is_active?: boolean
           created_at?: string
         }
+        Relationships: []
       }
       bills: {
         Row: {
@@ -172,7 +176,20 @@ export interface Database {
           pdf_url?: string | null
           created_at?: string
         }
+        Relationships: []
       }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
     }
   }
 }

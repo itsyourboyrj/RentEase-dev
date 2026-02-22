@@ -28,13 +28,14 @@ export function FlatCard({ flat, tenant }: { flat: any; tenant: any }) {
           <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-primary/10 blur-2xl group-hover:bg-primary/20 transition-colors" />
 
           <div className="flex justify-between items-start mb-4">
-            <div>
-              <h3 className="text-2xl font-black tracking-tighter text-primary">
-                {flat.flat_code}
-              </h3>
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
-                {flat.buildings.name}
-              </p>
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 aspect-square rounded-2xl bg-primary/10 flex items-center justify-center text-xl font-black text-primary border border-primary/20 shrink-0">
+                {flat.flat_code.replace(/\D/g, '') || flat.flat_code[0]}
+              </div>
+              <div>
+                <h3 className="text-lg font-bold leading-none">{flat.flat_code}</h3>
+                <p className="text-[10px] uppercase text-muted-foreground font-bold">{flat.buildings.name}</p>
+              </div>
             </div>
             <Badge variant={isOccupied ? "default" : "outline"} className="text-[10px]">
               {isOccupied ? "OCCUPIED" : "VACANT"}

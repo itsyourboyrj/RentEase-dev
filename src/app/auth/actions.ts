@@ -1,27 +1,22 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
+import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
 
-  // Get data from the form
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
-  // Tell Supabase to sign in
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
+  const { error } = await supabase.auth.signInWithPassword({ email, password })
 
-  if (error) {
-    // If there is an error, send them back to login with a message
-    return redirect('/login?error=' + encodeURIComponent(error.message))
-  }
+  if (error) throw new Error(error.message)
 
-  // If successful, go to the dashboard (home page)
+  // CRITICAL: Next.js 15 requires revalidation to sync the cookie properly
+  revalidatePath('/', 'layout')
   redirect('/')
 }
 
@@ -32,23 +27,41 @@ export async function signup(formData: FormData) {
   const password = formData.get('password') as string
   const fullName = formData.get('fullName') as string
 
-  // Tell Supabase to create a new user
   const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      data: {
-        full_name: fullName,
-      },
+      data: { full_name: fullName },
     },
   })
 
-  if (error) {
-    return redirect('/login?error=' + encodeURIComponent(error.message))
-  }
+  if (error) return { error: error.message }
 
-  // Go to home page
-  redirect('/')
+  // Return success so the client can show the confirmation popup
+  return { success: true }
+}
+
+export async function requestPasswordReset(formData: FormData) {
+  const supabase = await createClient()
+  const email = formData.get('email') as string
+  const origin = (await headers()).get('origin')
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/callback?next=/auth/reset-password`,
+  })
+
+  if (error) return { error: error.message }
+  return { success: true }
+}
+
+export async function updatePasswordAction(formData: FormData) {
+  const supabase = await createClient()
+  const password = formData.get('password') as string
+
+  const { error } = await supabase.auth.updateUser({ password })
+
+  if (error) return { error: error.message }
+  redirect('/login?message=Password updated successfully')
 }
 
 export async function signout() {

@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { StatCard } from "@/components/layout/stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
@@ -50,25 +49,18 @@ export default async function DashboardPage() {
     .maybeSingle();
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-10">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">Here is what is happening across your properties today.</p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Buildings" value={buildingCount || 0} icon={Building2} description="Managed locations" />
-        <StatCard title="Total Flats" value={flatCount || 0} icon={DoorOpen} description="Across all buildings" />
-        <StatCard title="Active Tenants" value={tenantCount || 0} icon={Users} description="Current occupancy" />
-        <StatCard
-          title="Total Dues"
-          value={`₹${totalDues.toLocaleString()}`}
-          icon={IndianRupee}
-          description="Unpaid invoices"
-          trend="Action required"
-          trendColor="text-destructive"
-        />
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <DashboardLink href="/buildings" title="Buildings" value={buildingCount} icon={Building2} desc="Manage locations" />
+        <DashboardLink href="/flats" title="Flats" value={flatCount} icon={DoorOpen} desc="View unit status" />
+        <DashboardLink href="/tenants" title="Active Tenants" value={tenantCount} icon={Users} desc="Current occupancy" />
+        <DashboardLink href="/billing" title="Total Dues" value={`₹${totalDues.toLocaleString()}`} icon={IndianRupee} desc="Action required" isAlert />
       </div>
 
       <div className="grid gap-4 md:grid-cols-7">
@@ -133,5 +125,30 @@ export default async function DashboardPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+function DashboardLink({ href, title, value, icon: Icon, desc, isAlert }: {
+  href: string;
+  title: string;
+  value: number | string | null;
+  icon: React.ElementType;
+  desc: string;
+  isAlert?: boolean;
+}) {
+  return (
+    <Link href={href} className="group transition-transform active:scale-95">
+      <Card className={`hover:shadow-2xl transition-all border-none relative overflow-hidden ${isAlert ? 'bg-destructive/5' : ''}`}>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium uppercase tracking-widest text-muted-foreground">{title}</CardTitle>
+          <Icon className={`h-5 w-5 ${isAlert ? 'text-destructive' : 'text-primary'}`} />
+        </CardHeader>
+        <CardContent>
+          <div className="text-3xl font-black tracking-tighter">{value ?? 0}</div>
+          <p className={`text-xs mt-1 ${isAlert ? 'text-destructive font-bold' : 'text-muted-foreground'}`}>{desc}</p>
+        </CardContent>
+        <div className={`absolute bottom-0 left-0 h-1 w-0 group-hover:w-full transition-all duration-300 ${isAlert ? 'bg-destructive' : 'bg-primary'}`} />
+      </Card>
+    </Link>
   );
 }

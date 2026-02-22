@@ -50,7 +50,7 @@ function NavContent({ navItems, pathname, owner, lang }: {
         <Link href="/settings" className="flex items-center gap-3 p-2 bg-muted/50 rounded-xl hover:bg-muted transition-colors">
           <div className="h-10 w-10 rounded-lg bg-primary text-white flex items-center justify-center font-bold overflow-hidden shrink-0">
             {owner?.profile_url
-              ? <img src={owner.profile_url} className="h-full w-full object-cover" alt={owner.full_name} />
+              ? <img src={owner.profile_url} className="h-full w-full object-cover" alt={owner.full_name ?? undefined} />
               : <span>{owner?.full_name?.[0]?.toUpperCase() || "A"}</span>}
           </div>
           <div className="flex-1 min-w-0">

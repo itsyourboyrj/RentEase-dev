@@ -15,7 +15,7 @@ import { translations } from "@/lib/translations";
 import { createClient } from "@/lib/supabase/client";
 
 type NavItem = { name: string; href: string; icon: React.ElementType };
-type Owner = { full_name?: string; profile_url?: string } | null;
+type Owner = { full_name?: string | null; profile_url?: string | null } | null;
 
 function NavContent({ navItems, pathname, owner, lang }: {
   navItems: NavItem[];

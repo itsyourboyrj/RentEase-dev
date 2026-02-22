@@ -44,10 +44,13 @@ export async function signup(formData: FormData) {
 export async function requestPasswordReset(formData: FormData) {
   const supabase = await createClient()
   const email = formData.get('email') as string
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (await headers()).get('origin') || 'http://localhost:3000'
+
+  const host = (await headers()).get('host')
+  const protocol = host?.includes('localhost') ? 'http' : 'https'
+  const origin = `${protocol}://${host}`
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${baseUrl}/auth/callback?next=/auth/reset-password`,
+    redirectTo: `${origin}/auth/callback?next=/auth/reset-password`,
   })
 
   if (error) return { error: error.message }

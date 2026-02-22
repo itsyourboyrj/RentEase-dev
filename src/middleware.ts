@@ -30,9 +30,16 @@ export async function middleware(request: NextRequest) {
   // This refreshes the session if it's expired
   const { data: { user } } = await supabase.auth.getUser()
 
-  // ROUTE PROTECTION:
-  // If no user is logged in, and they try to access anything other than login
-  if (!user && !request.nextUrl.pathname.startsWith('/login') && !request.nextUrl.pathname.startsWith('/auth')) {
+  const isAuthPage = request.nextUrl.pathname.startsWith('/login')
+  const isAuthCallback = request.nextUrl.pathname.startsWith('/auth')
+
+  // CRITICAL: Let all auth routes through unconditionally
+  if (isAuthCallback || isAuthPage) {
+    return supabaseResponse
+  }
+
+  // If no user, redirect to login
+  if (!user) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 

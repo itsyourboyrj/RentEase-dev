@@ -90,7 +90,7 @@ export default function LoginPage() {
         <div className="w-full max-w-sm space-y-8">
           <div className="text-center lg:text-left">
             <h1 className="text-4xl font-black tracking-tighter">
-              {view === "signup" ? "Get Started" : view === "forgot" ? "Reset Password" : "Welcome Back"}
+              {view === "signup" ? "Get Started" : view === "forgot" ? "Reset Password" : "Welcome"}
             </h1>
             <p className="text-muted-foreground mt-2">
               {view === "signup"

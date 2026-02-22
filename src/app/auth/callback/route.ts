@@ -14,5 +14,5 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.redirect(`${origin}/login?error=Session expired or invalid link`)
+  return NextResponse.redirect(`${origin}/login?error=Invalid or expired reset link`)
 }

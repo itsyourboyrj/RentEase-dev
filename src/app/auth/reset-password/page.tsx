@@ -37,11 +37,13 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     const supabase = createClient();
     const hash = window.location.hash;
+    const code = new URLSearchParams(window.location.search).get("code");
 
     if (hash && hash.includes("access_token")) {
-      const params = new URLSearchParams(hash.substring(1));
-      const accessToken = params.get("access_token");
-      const refreshToken = params.get("refresh_token") ?? "";
+      // Implicit flow: token is in the URL hash fragment
+      const hashParams = new URLSearchParams(hash.substring(1));
+      const accessToken = hashParams.get("access_token");
+      const refreshToken = hashParams.get("refresh_token") ?? "";
 
       if (accessToken) {
         supabase.auth
@@ -55,17 +57,23 @@ export default function ResetPasswordPage() {
             }
           });
       } else {
+        toast.error("Invalid reset link.");
         router.push("/login");
       }
-    } else {
-      supabase.auth.getUser().then(({ data: { user } }) => {
-        if (user) {
-          setSessionReady(true);
-        } else {
+    } else if (code) {
+      // PKCE flow: exchange the code for a session client-side
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (error) {
           toast.error("Session expired. Please request a new reset link.");
           router.push("/login");
+        } else {
+          setSessionReady(true);
         }
       });
+    } else {
+      // Neither — should not happen in normal flow
+      toast.error("Invalid reset link.");
+      router.push("/login");
     }
   }, [router]);
 

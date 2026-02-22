@@ -44,10 +44,10 @@ export async function signup(formData: FormData) {
 export async function requestPasswordReset(formData: FormData) {
   const supabase = await createClient()
   const email = formData.get('email') as string
-  const origin = (await headers()).get('origin')
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (await headers()).get('origin') || 'http://localhost:3000'
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/auth/callback?next=/auth/reset-password`,
+    redirectTo: `${baseUrl}/auth/callback?next=/auth/reset-password`,
   })
 
   if (error) return { error: error.message }
@@ -61,7 +61,7 @@ export async function updatePasswordAction(formData: FormData) {
   const { error } = await supabase.auth.updateUser({ password })
 
   if (error) return { error: error.message }
-  redirect('/login?message=Password updated successfully')
+  redirect('/')
 }
 
 export async function signout() {

@@ -97,13 +97,9 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## 📸 Screenshots
 
-| Dashboard | Glassy Flat Cards | Tenant Profile |
-|---|---|---|
-| ![Dashboard] | ![Flats] | ![Profile] |
-
-*(Replace these placeholders with your actual screenshots later)*
-
----
+| Dashboard | Glassy Flat Cards | Tenant Profile | Admin Settings |
+|-----------|-------------------|----------------|----------------|
+| ![Dashboard](./screenshots/dashboard.png) | ![Flats](./screenshots/flats.png) | ![Tenant Profile](./screenshots/tenant_profile.png) | ![Admin Settings](./screenshots/admin-profile.png) |
 
 ## 🤝 Contributing
 Forks and Pull Requests are welcome! For major changes, please open an issue first to discuss what you would like to change.

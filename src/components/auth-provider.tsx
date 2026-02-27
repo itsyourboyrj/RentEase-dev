@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 const AuthContext = createContext<any>({ user: null, owner: null, loading: true });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState({ user: null, owner: null, loading: true });
+  const [state, setState] = useState<{ user: any; owner: any; loading: boolean }>({ user: null, owner: null, loading: true });
   const supabase = createClient();
 
   useEffect(() => {

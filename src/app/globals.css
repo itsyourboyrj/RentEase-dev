@@ -124,3 +124,37 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .glass-card {
+    @apply bg-white/60 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)];
+  }
+
+  .dark .glass-card {
+    @apply bg-neutral-900/60 border-neutral-800/40 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)];
+  }
+
+  .glass-sidebar {
+    @apply bg-white/40 backdrop-blur-2xl border-r border-white/20;
+  }
+
+  .dark .glass-sidebar {
+    @apply bg-neutral-900/40 border-r-neutral-800/20;
+  }
+
+  .gradient-bg {
+    background: radial-gradient(circle at top left, #f8fafc, #eff6ff, #fdf4ff);
+  }
+
+  .dark .gradient-bg {
+    background: radial-gradient(circle at top left, #0a0a0a, #111827, #1a1025);
+  }
+}
+
+/* Thin modern scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 rounded-full;
+}

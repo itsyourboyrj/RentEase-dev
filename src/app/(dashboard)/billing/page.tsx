@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { NewBillModal } from "./new-bill-modal";
 import { BillingTable } from "./billing-table";
+import { BoutiqueEmptyState } from "@/components/shared/empty-state";
+import { Receipt } from "lucide-react";
 
 export default async function BillingPage() {
   const supabase = await createClient();
@@ -21,11 +23,21 @@ export default async function BillingPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Billing</h1>
+        <h1 className="text-3xl font-black tracking-tighter">Billing</h1>
         <NewBillModal tenants={tenants || []} owner={owner} />
       </div>
 
-      <BillingTable bills={bills || []} owner={owner} buildings={buildings || []} />
+      {!bills || bills.length === 0 ? (
+        <BoutiqueEmptyState
+          icon={Receipt}
+          title="No Invoices Yet"
+          description="Generate your first invoice using Fast Billing Mode or create a single bill for a tenant."
+          buttonText="Fast Billing"
+          href="/billing/bulk"
+        />
+      ) : (
+        <BillingTable bills={bills} owner={owner} buildings={buildings || []} />
+      )}
     </div>
   );
 }

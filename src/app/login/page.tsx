@@ -12,7 +12,8 @@ import {
   DialogTitle,
   DialogDescription
 } from "@/components/ui/dialog";
-import { Building2, ArrowRight, Loader2, CheckCircle2, Shield, KeyRound, Sparkles } from "lucide-react";
+import { Building2, ArrowRight, Loader2, CheckCircle2, Mail, ShieldCheck, Sparkles } from "lucide-react";
+import { Footer } from "@/components/shared/footer";
 import { toast } from "sonner";
 
 type View = "login" | "signup" | "forgot" | "otp-request" | "otp-verify";
@@ -212,35 +213,24 @@ export default function LoginPage() {
           {/* Alternates */}
           <div className="mt-8 space-y-4">
             {(view === "login" || view === "otp-request") && (
-              <>
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-slate-200" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white/60 px-3 text-slate-400 font-bold rounded-full">Or</span>
-                  </div>
-                </div>
-                {view === "login" ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full h-12 rounded-2xl border-slate-200 bg-white/60 hover:bg-white"
-                    onClick={() => setView("otp-request")}
-                  >
-                    <Shield className="mr-2 h-4 w-4" /> Use Email OTP Instead
-                  </Button>
-                ) : (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full h-12 rounded-2xl border-slate-200 bg-white/60 hover:bg-white"
-                    onClick={() => setView("login")}
-                  >
-                    <KeyRound className="mr-2 h-4 w-4" /> Use Password Instead
-                  </Button>
-                )}
-              </>
+              <div className="grid grid-cols-2 gap-3 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={`h-12 border-none rounded-2xl transition-all font-bold ${view === "otp-request" ? "bg-primary text-white shadow-lg" : "bg-muted/30"}`}
+                  onClick={() => setView("otp-request")}
+                >
+                  <Mail className="mr-2 h-4 w-4" /> Email OTP
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={`h-12 border-none rounded-2xl transition-all font-bold ${view === "login" ? "bg-primary text-white shadow-lg" : "bg-muted/30"}`}
+                  onClick={() => setView("login")}
+                >
+                  <ShieldCheck className="mr-2 h-4 w-4" /> Password
+                </Button>
+              </div>
             )}
 
             <div className="text-center">
@@ -263,6 +253,7 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

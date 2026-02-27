@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
 import { useLanguage } from "@/components/language-provider";
-import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/auth-provider";
 import { updateOwnerSettings, removeOwnerFile, updatePassword } from "@/app/settings/actions";
+import { authorizeEmailChange, finalizeEmailChange } from "@/app/auth/actions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,19 +13,39 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { User, Camera, Sun, Lock, QrCode, Loader2, X } from "lucide-react";
+import { User, Camera, Sun, Lock, QrCode, Loader2, X, Mail } from "lucide-react";
 import { toast } from "sonner";
+
+function SettingsSkeleton() {
+  return (
+    <div className="max-w-5xl mx-auto space-y-8 pb-20 p-4 animate-pulse">
+      <div className="h-10 w-48 bg-slate-200 rounded-2xl" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="h-64 bg-slate-100 rounded-[32px]" />
+        <div className="md:col-span-2 space-y-6">
+          <div className="h-40 bg-slate-100 rounded-[32px]" />
+          <div className="h-40 bg-slate-100 rounded-[32px]" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { lang, setLang } = useLanguage();
-  const supabase = createClient();
+  const { owner, user, loading } = useAuth();
 
-  const [owner, setOwner] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+
+  // Email change state
+  const [isEmailChanging, setIsEmailChanging] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpToken, setOtpToken] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [emailChangeLoading, setEmailChangeLoading] = useState(false);
 
   // Instant preview states
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
@@ -37,27 +58,17 @@ export default function SettingsPage() {
   const profileBlobRef = useRef<string | null>(null);
   const qrBlobRef = useRef<string | null>(null);
 
+  // Sync previews and language from auth context once loaded
   useEffect(() => {
-    async function getOwner() {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data } = await supabase.from("owners").select("*").eq("id", user.id).single();
-          setOwner(data);
-          if (data?.profile_url) setProfilePreview(data.profile_url);
-          if (data?.upi_qr_url) setQrPreview(data.upi_qr_url);
-          if (data?.preferred_lang) setLang(data.preferred_lang);
-        }
-      } catch {
-        toast.error("Failed to load settings");
-      } finally {
-        setLoading(false);
-      }
+    if (owner) {
+      if (owner.profile_url && !profileBlobRef.current) setProfilePreview(owner.profile_url);
+      if (owner.upi_qr_url && !qrBlobRef.current) setQrPreview(owner.upi_qr_url);
+      if (owner.preferred_lang) setLang(owner.preferred_lang);
     }
-    getOwner();
+  }, [owner]);
 
+  useEffect(() => {
     return () => {
-      // Revoke any blob URLs on unmount to free memory
       if (profileBlobRef.current) URL.revokeObjectURL(profileBlobRef.current);
       if (qrBlobRef.current) URL.revokeObjectURL(qrBlobRef.current);
     };
@@ -164,7 +175,45 @@ export default function SettingsPage() {
     }
   }
 
-  if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>;
+  async function handleStartEmailChange() {
+    setEmailChangeLoading(true);
+    try {
+      const res = await authorizeEmailChange();
+      if (res?.success) {
+        setOtpSent(true);
+        toast.success("Verification code sent to your current email!");
+      } else {
+        toast.error(res?.error || "Failed to send code");
+      }
+    } catch {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setEmailChangeLoading(false);
+    }
+  }
+
+  async function handleConfirmEmailChange() {
+    if (!otpToken || !newEmail) { toast.error("Please enter both the code and your new email"); return; }
+    setEmailChangeLoading(true);
+    try {
+      const res = await finalizeEmailChange(otpToken, newEmail);
+      if (res?.success) {
+        toast.success("Email updated! Check your new inbox to confirm.");
+        setIsEmailChanging(false);
+        setOtpSent(false);
+        setOtpToken("");
+        setNewEmail("");
+      } else {
+        toast.error(res?.error || "Failed to update email");
+      }
+    } catch {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setEmailChangeLoading(false);
+    }
+  }
+
+  if (loading || !owner) return <SettingsSkeleton />;
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-20 p-4">
@@ -222,6 +271,10 @@ export default function SettingsPage() {
                 <div className="grid gap-2">
                   <Label>Landlord Name</Label>
                   <Input name="fullName" defaultValue={owner?.full_name} required />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Phone Number</Label>
+                  <Input name="phone" defaultValue={owner?.phone} placeholder="9876543210" />
                 </div>
                 <div className="grid gap-2">
                   <Label>UPI ID</Label>
@@ -324,6 +377,67 @@ export default function SettingsPage() {
                   </form>
                 </DialogContent>
               </Dialog>
+            </CardContent>
+          </Card>
+
+          {/* ACCOUNT SECURITY: EMAIL CHANGE */}
+          <Card className="glass-card border-none shadow-lg overflow-hidden">
+            <CardHeader className="bg-primary/5">
+              <CardTitle className="text-lg flex items-center gap-2"><Mail className="h-5 w-5 text-primary" /> Account Security</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-bold">Email Address</p>
+                  <p className="text-xs text-muted-foreground">{user?.email}</p>
+                </div>
+                {!isEmailChanging && (
+                  <Button variant="outline" size="sm" className="rounded-xl font-bold" onClick={() => setIsEmailChanging(true)}>
+                    Change Email
+                  </Button>
+                )}
+              </div>
+
+              {isEmailChanging && (
+                <div className="p-4 bg-muted/30 rounded-[24px] space-y-4 border border-border/50">
+                  {!otpSent ? (
+                    <div className="space-y-3">
+                      <p className="text-xs font-medium text-muted-foreground">A verification code will be sent to your current email address.</p>
+                      <Button size="sm" className="w-full rounded-xl font-bold" onClick={handleStartEmailChange} disabled={emailChangeLoading}>
+                        {emailChangeLoading && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
+                        Request Verification Code
+                      </Button>
+                      <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => setIsEmailChanging(false)}>
+                        Cancel
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <Input
+                        placeholder="6-digit code"
+                        className="h-11 rounded-xl"
+                        maxLength={6}
+                        value={otpToken}
+                        onChange={(e) => setOtpToken(e.target.value)}
+                      />
+                      <Input
+                        placeholder="New Email Address"
+                        type="email"
+                        className="h-11 rounded-xl"
+                        value={newEmail}
+                        onChange={(e) => setNewEmail(e.target.value)}
+                      />
+                      <Button className="w-full rounded-xl font-bold" onClick={handleConfirmEmailChange} disabled={emailChangeLoading}>
+                        {emailChangeLoading && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
+                        Verify &amp; Update Email
+                      </Button>
+                      <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => { setIsEmailChanging(false); setOtpSent(false); setOtpToken(""); setNewEmail(""); }}>
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
 

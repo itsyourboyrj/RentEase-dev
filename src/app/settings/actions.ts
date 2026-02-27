@@ -21,6 +21,7 @@ export async function updateOwnerSettings(formData: FormData) {
   if (!user) return { error: "Not authenticated" }
 
   const fullName = formData.get('fullName') as string
+  const phone = formData.get('phone') as string
   const upiId = formData.get('upiId') as string
   const lang = formData.get('lang') as string
   const profileFile = formData.get('profileFile') as File | null
@@ -32,6 +33,7 @@ export async function updateOwnerSettings(formData: FormData) {
 
   const updates: any = {
     full_name: fullName.trim(),
+    phone: phone?.trim() || null,
     upi_id: upiId?.trim() || null,
     preferred_lang: lang
   }

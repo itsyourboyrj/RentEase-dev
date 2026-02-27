@@ -25,9 +25,11 @@ function NavContent({ navItems, pathname, owner, lang }: {
 }) {
   return (
     <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center border-b px-6">
-        <Link href="/" className="flex items-center gap-2 font-bold text-primary">
-          <Building2 className="h-6 w-6" />
+      <div className="flex h-16 items-center border-b border-white/20 px-6">
+        <Link href="/" className="flex items-center gap-2 font-black italic tracking-tighter text-primary">
+          <div className="bg-primary text-white p-1 rounded-lg">
+            <Building2 className="h-5 w-5" />
+          </div>
           <span className="text-xl">RentEase</span>
         </Link>
       </div>
@@ -36,31 +38,33 @@ function NavContent({ navItems, pathname, owner, lang }: {
           const isActive = pathname === item.href;
           return (
             <Link key={item.href} href={item.href} className={cn(
-              "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-              isActive ? "bg-primary text-primary-foreground" : "hover:bg-muted text-muted-foreground hover:text-foreground"
+              "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold transition-all duration-300",
+              isActive
+                ? "bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]"
+                : "hover:bg-white/60 text-slate-500 hover:text-primary"
             )}>
-              <item.icon className="h-5 w-5" />
+              <item.icon className={cn("h-5 w-5", isActive ? "text-white" : "text-slate-400")} />
               {item.name}
             </Link>
           );
         })}
       </nav>
-      <div className="border-t p-4 space-y-3">
+      <div className="border-t border-white/20 p-4 space-y-3">
         {/* Admin Profile */}
-        <Link href="/settings" className="flex items-center gap-3 p-2 bg-muted/50 rounded-xl hover:bg-muted transition-colors">
-          <div className="h-10 w-10 rounded-lg bg-primary text-white flex items-center justify-center font-bold overflow-hidden shrink-0">
+        <Link href="/settings" className="flex items-center gap-3 p-2 bg-white/40 rounded-2xl hover:bg-white/60 transition-colors">
+          <div className="h-10 w-10 rounded-xl bg-primary text-white flex items-center justify-center font-bold overflow-hidden shrink-0">
             {owner?.profile_url
-              ? <img src={owner.profile_url} className="h-full w-full object-cover" alt={owner.full_name ?? undefined} />
-              : <span>{owner?.full_name?.[0]?.toUpperCase() || "A"}</span>}
+              ? <img src={owner.profile_url} className="h-full w-full object-cover" alt={owner?.full_name || "Owner avatar"} />
+              : <span aria-hidden="true">{owner?.full_name?.[0]?.toUpperCase() || "A"}</span>}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold truncate">{owner?.full_name || "Admin"}</p>
-            <p className="text-[10px] text-muted-foreground uppercase">{lang === "hi" ? "मालिक" : "Owner"}</p>
+            <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">{lang === "hi" ? "मालिक" : "Owner"}</p>
           </div>
         </Link>
         {/* Logout */}
         <form action={signout}>
-          <button className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10">
+          <button className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-destructive hover:bg-destructive/10 transition-colors">
             <LogOut className="h-5 w-5" /> {lang === "hi" ? "लॉग आउट" : "Logout"}
           </button>
         </form>
@@ -105,7 +109,7 @@ export function Sidebar({ className }: { className?: string }) {
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className={cn("hidden lg:flex h-full w-64 flex-col border-r bg-card", className)}>
+      <div className={cn("hidden lg:flex h-full w-64 flex-col glass-sidebar", className)}>
         <NavContent navItems={navItems} pathname={pathname} owner={owner} lang={lang} />
       </div>
 

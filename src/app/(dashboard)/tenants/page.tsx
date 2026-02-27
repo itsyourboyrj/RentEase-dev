@@ -5,7 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 import { DataFilter } from "@/components/shared/data-filter";
 import { AddTenantModal } from "./add-tenant-modal";
 import { TenantCard } from "./tenant-card";
-import { Loader2 } from "lucide-react";
+import { BoutiqueEmptyState } from "@/components/shared/empty-state";
+import { Loader2, Users } from "lucide-react";
 
 export default function TenantsPage() {
   const [tenants, setTenants] = useState<any[]>([]);
@@ -91,8 +92,14 @@ export default function TenantsPage() {
         onClear={() => { setSearch(""); setBuildingFilter("all"); setStatusFilter("Active"); }}
       />
 
-      {filteredTenants.length === 0 ? (
-        <div className="text-center py-20 text-muted-foreground">No tenants match your filters.</div>
+      {tenants.length === 0 ? (
+        <BoutiqueEmptyState
+          icon={Users}
+          title="Your Tenant List is Empty"
+          description="Once you have buildings and flats, you can onboard your first tenant here."
+        />
+      ) : filteredTenants.length === 0 ? (
+        <div className="text-center py-20 text-slate-500 font-medium">No tenants match your filters.</div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTenants.map(tenant => (

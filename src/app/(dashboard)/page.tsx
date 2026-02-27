@@ -4,9 +4,12 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Building2, DoorOpen, Users, IndianRupee, AlertCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Building2, DoorOpen, Users, IndianRupee, AlertCircle, UserCircle } from "lucide-react";
 import Link from "next/link";
 import { RemindButton } from "@/components/dashboard/remind-button";
+import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
+import { BoutiqueEmptyState } from "@/components/shared/empty-state";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -44,17 +47,45 @@ export default async function DashboardPage() {
 
   const { data: owner } = await supabase
     .from("owners")
-    .select("upi_id")
+    .select("upi_id, full_name, phone")
     .eq("id", user.id)
     .maybeSingle();
 
+  // Profile incomplete → show setup prompt before anything else
+  if (!owner?.full_name || !owner?.phone) {
+    return (
+      <div className="space-y-8 pb-10">
+        <OnboardingWizard buildingCount={buildingCount || 0} />
+        <BoutiqueEmptyState
+          icon={UserCircle}
+          title="Finish your Setup"
+          description="We need your landlord name and phone number before you can start managing properties."
+          buttonText="Setup Profile"
+          href="/settings"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 pb-10">
+      <OnboardingWizard buildingCount={buildingCount || 0} />
+
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">Here is what is happening across your properties today.</p>
+        <h1 className="text-3xl font-black tracking-tighter">Dashboard</h1>
+        <p className="text-slate-500 font-medium">Here is what is happening across your properties today.</p>
       </div>
 
+      {(buildingCount ?? 0) === 0 ? (
+        <BoutiqueEmptyState
+          icon={Building2}
+          title="No Buildings Yet"
+          description="You haven't added any properties. Add your first building to start managing flats and tenants."
+          buttonText="Add Building"
+          href="/buildings"
+        />
+      ) : (
+        <>
       {/* Stats Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <DashboardLink href="/buildings" title="Buildings" value={buildingCount} icon={Building2} desc="Manage locations" />
@@ -65,7 +96,7 @@ export default async function DashboardPage() {
 
       <div className="grid gap-4 md:grid-cols-7">
         {/* Unpaid Bills Table */}
-        <Card className="col-span-4">
+        <Card className="col-span-4 glass-card border-none rounded-[32px]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-destructive" />
@@ -107,23 +138,25 @@ export default async function DashboardPage() {
         </Card>
 
         {/* Quick Actions */}
-        <Card className="col-span-3">
+        <Card className="col-span-3 glass-card border-none rounded-[32px]">
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-2">
-            <Button className="w-full justify-start" variant="outline" asChild>
+            <Button className="w-full justify-start rounded-2xl" variant="outline" asChild>
               <Link href="/buildings">Add New Building</Link>
             </Button>
-            <Button className="w-full justify-start" variant="outline" asChild>
+            <Button className="w-full justify-start rounded-2xl" variant="outline" asChild>
               <Link href="/tenants">Onboard New Tenant</Link>
             </Button>
-            <Button className="w-full justify-start font-bold" asChild>
+            <Button className="w-full justify-start rounded-2xl bg-gradient-to-r from-primary to-indigo-600 hover:opacity-90 shadow-lg shadow-primary/20 border-none font-bold" asChild>
               <Link href="/billing">Generate Monthly Bills</Link>
             </Button>
           </CardContent>
         </Card>
       </div>
+        </>
+      )}
     </div>
   );
 }
@@ -137,18 +170,24 @@ function DashboardLink({ href, title, value, icon: Icon, desc, isAlert }: {
   isAlert?: boolean;
 }) {
   return (
-    <Link href={href} className="group transition-transform active:scale-95">
-      <Card className={`hover:shadow-2xl transition-all border-none relative overflow-hidden ${isAlert ? 'bg-destructive/5' : ''}`}>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium uppercase tracking-widest text-muted-foreground">{title}</CardTitle>
-          <Icon className={`h-5 w-5 ${isAlert ? 'text-destructive' : 'text-primary'}`} />
-        </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-black tracking-tighter">{value ?? 0}</div>
-          <p className={`text-xs mt-1 ${isAlert ? 'text-destructive font-bold' : 'text-muted-foreground'}`}>{desc}</p>
-        </CardContent>
-        <div className={`absolute bottom-0 left-0 h-1 w-0 group-hover:w-full transition-all duration-300 ${isAlert ? 'bg-destructive' : 'bg-primary'}`} />
-      </Card>
+    <Link href={href} className="group">
+      <div className={cn(
+        "glass-card p-6 rounded-[32px] transition-all duration-500 hover:translate-y-[-4px] hover:shadow-2xl relative overflow-hidden",
+        isAlert ? "bg-red-50/50" : ""
+      )}>
+        <div className="flex justify-between items-start mb-4">
+          <div className={cn(
+            "p-3 rounded-2xl",
+            isAlert ? "bg-red-100 text-red-600" : "bg-primary/10 text-primary"
+          )}>
+            <Icon className="h-6 w-6" />
+          </div>
+          <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">{title}</div>
+        </div>
+        <div className="text-3xl font-black tracking-tighter mb-1">{value ?? 0}</div>
+        <p className={cn("text-xs font-bold", isAlert ? "text-red-500" : "text-slate-500")}>{desc}</p>
+        <div className="absolute bottom-0 left-0 h-1 w-0 group-hover:w-full bg-gradient-to-r from-primary to-purple-500 transition-all duration-500" />
+      </div>
     </Link>
   );
 }

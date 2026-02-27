@@ -1,7 +1,5 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
-import { LucideIcon, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 
 export function BoutiqueEmptyState({
@@ -9,15 +7,13 @@ export function BoutiqueEmptyState({
   title,
   description,
   buttonText,
-  onAction,
-  href,
+  href
 }: {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-  buttonText?: string;
-  onAction?: () => void;
-  href?: string;
+  icon: any,
+  title: string,
+  description: string,
+  buttonText?: string,
+  href?: string
 }) {
   return (
     <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
@@ -33,21 +29,12 @@ export function BoutiqueEmptyState({
         {description}
       </p>
 
-      {buttonText && (
-        href ? (
-          <Button className="rounded-2xl bg-primary hover:scale-105 transition-all shadow-xl shadow-primary/20 h-12 px-8 font-bold" asChild>
-            <Link href={href}>
-              <Plus className="mr-2 h-5 w-5" /> {buttonText}
-            </Link>
-          </Button>
-        ) : (
-          <Button
-            onClick={onAction}
-            className="rounded-2xl bg-primary hover:scale-105 transition-all shadow-xl shadow-primary/20 h-12 px-8 font-bold"
-          >
+      {buttonText && href && (
+        <Button asChild className="rounded-2xl bg-primary hover:scale-105 transition-all shadow-xl shadow-primary/20 h-12 px-8 font-bold">
+          <Link href={href}>
             <Plus className="mr-2 h-5 w-5" /> {buttonText}
-          </Button>
-        )
+          </Link>
+        </Button>
       )}
     </div>
   );

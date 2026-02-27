@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginBottom: 30,
   },
 
@@ -49,14 +49,9 @@ const styles = StyleSheet.create({
     color: '#111827'
   },
 
-  logoPlaceholder: {
-    width: 80,
-    height: 80,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 12,
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center'
+  logo: {
+    width: 140,
+    height: 'auto',
   },
 
   // Table Styling
@@ -175,7 +170,7 @@ const styles = StyleSheet.create({
   }
 });
 
-export function InvoicePDF({ bill, tenant, owner }: any) {
+export function InvoicePDF({ bill, tenant, owner, logoUrl }: any) {
   const currentReading = Number(bill.current_reading) || 0;
   const previousReading = Number(bill.previous_reading) || 0;
   const units = currentReading - previousReading;
@@ -198,11 +193,11 @@ export function InvoicePDF({ bill, tenant, owner }: any) {
             <Text style={styles.metaText}>Bill date: <Text style={styles.metaValue}>{new Date(bill.created_at).toLocaleDateString()}</Text></Text>
           </View>
 
-          <View style={styles.logoPlaceholder}>
-             {/* Replace with actual image if available */}
-             <Text style={{ fontSize: 8, color: '#9CA3AF' }}>LOGO OF</Text>
-             <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#4F46E5' }}>RENTEASE</Text>
-          </View>
+          {logoUrl ? (
+            <View>
+              <Image src={logoUrl} style={styles.logo} />
+            </View>
+          ) : null}
         </View>
 
         {/* Grid Table */}

@@ -121,6 +121,17 @@ export function AddTenantModal({ buildings, vacantFlats }: { buildings: any[], v
               </Select>
             </div>
             <div className="space-y-2">
+              <Label>Marital Status*</Label>
+              <Select name="marital_status" required>
+                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Single">Single</SelectItem>
+                  <SelectItem value="Married">Married</SelectItem>
+                  <SelectItem value="Divorced">Divorced</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <Label>Employment*</Label>
               <Select name="employment_status" required>
                 <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
@@ -133,13 +144,13 @@ export function AddTenantModal({ buildings, vacantFlats }: { buildings: any[], v
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Total Members*</Label>
               <Input name="occupancy_count" type="number" placeholder="1" defaultValue="1" min={1} step="1" required />
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Current Meter Reading*</Label>
               <Input name="initial_meter_reading" type="number" step="0.01" min={0} placeholder="0.00" required />

@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Phone, User, MapPin, FileText, Upload, Loader2, ArrowLeft, Trash2, Camera, X, ShieldCheck, Briefcase, Users2, Zap } from "lucide-react";
+import { Phone, User, MapPin, FileText, Upload, Loader2, ArrowLeft, Trash2, Camera, X, ShieldCheck, Briefcase, Users2, Zap, Heart } from "lucide-react";
 import { uploadDocument, updateProfilePicture, removeProfilePicture, deleteDocument } from "@/app/documents/actions";
 import { toast } from "sonner";
 import Link from "next/link";
 import { CheckoutModal } from "./checkout-modal";
+import { EditTenantModal } from "./edit-tenant-modal";
 
 export default function TenantProfile({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -133,7 +134,10 @@ function TenantProfileContent({ id }: { id: string }) {
           </div>
         </div>
 
-        {tenant.is_active && <CheckoutModal tenant={tenant} />}
+        <div className="flex gap-2">
+          <EditTenantModal tenant={tenant} onSaved={fetchData} />
+          {tenant.is_active && <CheckoutModal tenant={tenant} />}
+        </div>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
@@ -143,6 +147,7 @@ function TenantProfileContent({ id }: { id: string }) {
             <Detail label="Phone" value={tenant.phone} icon={Phone} />
             <Detail label="Aadhar Number" value={maskAadhar(tenant.aadhar_number)} icon={ShieldCheck} />
             <Detail label="Gender" value={tenant.gender || "N/A"} icon={User} />
+            <Detail label="Marital Status" value={tenant.marital_status || "N/A"} icon={Heart} />
             <Detail label="Employment" value={tenant.employment_status || "N/A"} icon={Briefcase} />
             <Detail label="Total Members" value={`${tenant.occupancy_count ?? 1} Person(s)`} icon={Users2} />
             <Detail label="Opening Meter" value={tenant.initial_meter_reading != null ? String(tenant.initial_meter_reading) : "N/A"} icon={Zap} />

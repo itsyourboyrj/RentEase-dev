@@ -8,10 +8,13 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Building, DoorOpen, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { AddFlatModal } from "./add-flat-modal";
+import { EditStatusModal } from "@/components/flats/edit-status-modal";
 
 export default async function BuildingDetailPage({ params }: { params: { id: string } }) {
   const supabase = await createClient();
@@ -86,16 +89,23 @@ export default async function BuildingDetailPage({ params }: { params: { id: str
                   <TableCell>{flat.floor}</TableCell>
                   <TableCell>₹{flat.rent_amount.toLocaleString()}</TableCell>
                   <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      flat.is_occupied
-                        ? "bg-green-100 text-green-700"
-                        : "bg-slate-100 text-slate-600"
-                    }`}>
-                      {flat.is_occupied ? "Occupied" : "Vacant"}
-                    </span>
+                    <Badge className={cn(
+                      "text-[10px]",
+                      {
+                        'Occupied': 'bg-indigo-500/10 text-indigo-600',
+                        'Pre-booked': 'bg-amber-500/10 text-amber-600',
+                        'Vacant': 'bg-emerald-500/10 text-emerald-600',
+                      }[flat.status as string] ?? 'bg-gray-500/10 text-gray-600'
+                    )}>
+                      {({
+                        'Occupied': 'OCCUPIED',
+                        'Pre-booked': 'PRE-BOOKED',
+                        'Vacant': 'VACANT',
+                      }[flat.status as string] ?? 'UNKNOWN')}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">Edit</Button>
+                    <EditStatusModal flat={flat} />
                   </TableCell>
                 </TableRow>
               ))

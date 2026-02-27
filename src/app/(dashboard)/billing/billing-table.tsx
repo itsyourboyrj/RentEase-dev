@@ -10,6 +10,7 @@ import { MessageCircle, Trash2, MoreVertical } from "lucide-react";
 import { deleteBills, updateBillStatus } from "@/app/billing/actions";
 import { toast } from "sonner";
 import { BillViewButton } from "@/components/billing/bill-view-button";
+import { RecordPaymentModal } from "@/components/billing/record-payment-modal";
 import { DataFilter } from "@/components/shared/data-filter";
 
 export function BillingTable({ bills, owner, buildings }: any) {
@@ -174,7 +175,8 @@ export function BillingTable({ bills, owner, buildings }: any) {
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-1">
+                  <div className="flex justify-end gap-1 items-center">
+                    <RecordPaymentModal bill={bill} />
                     <BillViewButton bill={bill} tenant={bill.tenants} owner={owner} />
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

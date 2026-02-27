@@ -48,6 +48,47 @@ export async function createTenant(formData: FormData) {
   revalidatePath('/flats')
 }
 
+export async function updateTenant(tenantId: string, formData: FormData) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error("Unauthorized")
+
+  const rawOccupancy = formData.get('occupancy_count') as string
+  const parsedOccupancy = rawOccupancy ? parseInt(rawOccupancy, 10) : undefined
+
+  const updates: Record<string, unknown> = {
+    name: formData.get('name') as string,
+    phone: formData.get('phone') as string,
+    email: formData.get('email') as string,
+    aadhar_number: formData.get('aadhar_number') as string,
+    gender: formData.get('gender') as string,
+    employment_status: formData.get('employment_status') as string,
+    marital_status: formData.get('marital_status') as string,
+    emergency_contact: formData.get('emergency_contact') as string,
+    address: formData.get('address') as string,
+  }
+
+  if (Number.isFinite(parsedOccupancy)) {
+    updates.occupancy_count = parsedOccupancy
+  }
+
+  const { data: updatedRows, error } = await supabase
+    .from('tenants')
+    .update(updates)
+    .eq('id', tenantId)
+    .eq('owner_id', user.id)
+    .select('id')
+
+  if (error) throw new Error(error.message)
+  if (!updatedRows || updatedRows.length === 0) {
+    throw new Error('Tenant not found or not owned by user')
+  }
+
+  revalidatePath(`/tenants/${tenantId}`)
+  revalidatePath('/tenants')
+}
+
 export async function checkoutTenant(tenantId: string, flatId: string, finalReading: number) {
   const supabase = await createClient()
 

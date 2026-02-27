@@ -105,4 +105,4 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 Forks and Pull Requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
 
 ## 📄 License
-This project is licensed under the MIT License."""
+This project is licensed under the MIT License.

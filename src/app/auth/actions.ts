@@ -76,7 +76,6 @@ export async function signup(formData: FormData) {
           </div>
         </div>
       `,
-    })
   }).catch((emailError) => {
     console.error("Welcome email failed:", emailError)
   })

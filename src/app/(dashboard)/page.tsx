@@ -17,7 +17,7 @@ interface OverdueBill {
     phone: string;
     flats: {
       flat_code: string;
-    };
+    } | null;
   } | null;
 }
 

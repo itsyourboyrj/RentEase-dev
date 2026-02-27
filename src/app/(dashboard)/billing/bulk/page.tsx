@@ -38,7 +38,7 @@ export default function BulkBillingPage() {
           );
           return {
             ...t,
-            last_reading: sorted[0]?.current_reading ?? t.initial_meter_reading ?? 0,
+            last_reading: sorted[0]?.current_reading ?? (t as any).initial_meter_reading ?? 0,
           };
         });
         setTenants(formatted);

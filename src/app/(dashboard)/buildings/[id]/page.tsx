@@ -95,13 +95,13 @@ export default async function BuildingDetailPage({ params }: { params: { id: str
                         'Occupied': 'bg-indigo-500/10 text-indigo-600',
                         'Pre-booked': 'bg-amber-500/10 text-amber-600',
                         'Vacant': 'bg-emerald-500/10 text-emerald-600',
-                      }[flat.status as string] ?? 'bg-gray-500/10 text-gray-600'
+                      }[String((flat as any).status)] ?? 'bg-gray-500/10 text-gray-600'
                     )}>
                       {({
                         'Occupied': 'OCCUPIED',
                         'Pre-booked': 'PRE-BOOKED',
                         'Vacant': 'VACANT',
-                      }[flat.status as string] ?? 'UNKNOWN')}
+                      }[String((flat as any).status)] ?? 'UNKNOWN')}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">

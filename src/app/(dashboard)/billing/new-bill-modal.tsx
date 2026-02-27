@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -18,8 +19,51 @@ export function NewBillModal({ tenants, owner }: { tenants: any[], owner: any })
   const [prevReading, setPrevReading] = useState(0);
   const [currReading, setCurrReading] = useState(0);
   const [generatedBill, setGeneratedBill] = useState<any>(null);
+  const supabase = createClient();
 
   const tenant = tenants.find(t => t.id === selectedTenantId);
+
+  // Auto-fetch the correct starting meter reading when tenant changes
+  useEffect(() => {
+    if (!selectedTenantId) return;
+
+    let cancelled = false;
+
+    async function getLatestReading() {
+      try {
+        const { data: lastBill, error } = await supabase
+          .from('bills')
+          .select('current_reading')
+          .eq('tenant_id', selectedTenantId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (cancelled) return;
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Failed to fetch latest reading:', error.message);
+          return;
+        }
+
+        if (lastBill) {
+          setPrevReading(lastBill.current_reading);
+        } else {
+          const t = tenants.find(t => t.id === selectedTenantId);
+          setPrevReading(t?.initial_meter_reading || 0);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error('Unexpected error fetching meter reading:', err);
+        }
+      }
+    }
+
+    setCurrReading(0);
+    getLatestReading();
+
+    return () => { cancelled = true; };
+  }, [selectedTenantId, supabase, tenants]);
 
   // Auto-calculate
   const units = Math.max(0, currReading - prevReading);
@@ -100,14 +144,33 @@ export function NewBillModal({ tenants, owner }: { tenants: any[], owner: any })
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 bg-primary/5 p-4 rounded-xl border border-primary/10">
               <div className="space-y-2">
-                <Label>Previous Reading</Label>
-                <Input name="previous_reading" type="number" onChange={(e) => setPrevReading(Number(e.target.value))} required />
+                <Label className="text-primary font-bold">Previous Reading (Auto)</Label>
+                <Input
+                  name="previous_reading"
+                  value={prevReading}
+                  readOnly
+                  className="bg-background font-bold text-lg border-primary/20"
+                  onChange={() => {}}
+                />
+                <p className="text-[10px] text-muted-foreground uppercase font-medium">Pulled from last month</p>
               </div>
               <div className="space-y-2">
-                <Label>Current Reading</Label>
-                <Input name="current_reading" type="number" onChange={(e) => setCurrReading(Number(e.target.value))} required />
+                <Label>Final Reading*</Label>
+                <Input
+                  name="current_reading"
+                  type="number"
+                  step="0.01"
+                  placeholder="Enter current"
+                  className="text-lg font-bold"
+                  required
+                  value={currReading || ""}
+                  onChange={(e) => {
+                    const parsed = parseFloat(e.target.value);
+                    setCurrReading(Number.isFinite(parsed) ? parsed : 0);
+                  }}
+                />
               </div>
             </div>
 

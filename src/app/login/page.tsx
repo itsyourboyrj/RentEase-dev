@@ -30,7 +30,13 @@ export default function LoginPage() {
 
     try {
       if (view === "login") {
-        await login(formData);
+        const result = await login(formData);
+        if (result?.error) {
+          toast.error("Wrong password or username. Please enter correct details.");
+          setLoading(false);
+        } else {
+          window.location.href = "/";
+        }
       } else if (view === "signup") {
         const res = await signup(formData);
         if (res?.success) {

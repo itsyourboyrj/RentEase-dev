@@ -32,6 +32,18 @@ export function AddTenantModal({ buildings, vacantFlats }: { buildings: any[], v
 
   async function handleSubmit(formData: FormData) {
     if (loading) return;
+
+    const occupancy = parseInt(formData.get('occupancy_count') as string);
+    if (!Number.isFinite(occupancy) || occupancy < 1) {
+      toast.error("Total members must be at least 1");
+      return;
+    }
+    const meterReading = parseFloat(formData.get('initial_meter_reading') as string);
+    if (!Number.isFinite(meterReading) || meterReading < 0) {
+      toast.error("Meter reading cannot be negative");
+      return;
+    }
+
     setLoading(true);
     try {
       await createTenant(formData);
@@ -85,41 +97,83 @@ export function AddTenantModal({ buildings, vacantFlats }: { buildings: any[], v
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="name">Tenant Full Name</Label>
-            <Input id="name" name="name" placeholder="Ramesh Kumar" required />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Full Name*</Label>
+              <Input name="name" placeholder="Ramesh Kumar" required />
+            </div>
+            <div className="space-y-2">
+              <Label>Aadhar Number*</Label>
+              <Input name="aadhar_number" placeholder="000000000000" maxLength={12} pattern="\d{12}" inputMode="numeric" title="Enter 12 numeric digits" required />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="emergency_contact">Emergency Contact (Name & Phone)</Label>
-            <Input id="emergency_contact" name="emergency_contact" placeholder="Sita Devi - 9876543211" />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="address">Permanent Address</Label>
-            <Input id="address" name="address" placeholder="123, Street Name, City" />
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Gender*</Label>
+              <Select name="gender" required>
+                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Male">Male</SelectItem>
+                  <SelectItem value="Female">Female</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Employment*</Label>
+              <Select name="employment_status" required>
+                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Govt Employee">Govt Employee</SelectItem>
+                  <SelectItem value="Private Company">Private Company</SelectItem>
+                  <SelectItem value="Student">Student</SelectItem>
+                  <SelectItem value="Business">Business</SelectItem>
+                  <SelectItem value="None">None</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Total Members*</Label>
+              <Input name="occupancy_count" type="number" placeholder="1" defaultValue="1" min={1} step="1" required />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input id="phone" name="phone" placeholder="9876543210" required />
+              <Label>Current Meter Reading*</Label>
+              <Input name="initial_meter_reading" type="number" step="0.01" min={0} placeholder="0.00" required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="join_date">Join Date</Label>
-              <Input id="join_date" name="join_date" type="date" required />
+              <Label>Join Date*</Label>
+              <Input name="join_date" type="date" required />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="security_deposit">Security Deposit (₹)</Label>
-              <Input id="security_deposit" name="security_deposit" type="number" placeholder="15000" />
+              <Label>Phone Number*</Label>
+              <Input name="phone" placeholder="9876543210" required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="meter_number">Meter Number</Label>
-              <Input id="meter_number" name="meter_number" placeholder="MET-001" />
+              <Label>Security Deposit (₹)</Label>
+              <Input name="security_deposit" type="number" placeholder="15000" />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Emergency Contact (Name & Phone)</Label>
+            <Input name="emergency_contact" placeholder="Sita Devi - 9876543211" />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Permanent Address</Label>
+            <Input name="address" placeholder="123, Street Name, City" />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Meter Number</Label>
+            <Input name="meter_number" placeholder="MET-001" />
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>

@@ -10,9 +10,19 @@ import {
   Users2, Heart, FileText, Smartphone, DoorOpen
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { EditStatusModal } from "@/components/flats/edit-status-modal";
+import { cn } from "@/lib/utils";
+
+const statusConfig: Record<string, string> = {
+  Occupied: "bg-indigo-500/10 text-indigo-600 border-indigo-200",
+  Booked: "bg-amber-500/10 text-amber-600 border-amber-200",
+  Vacant: "bg-emerald-500/10 text-emerald-600 border-emerald-200",
+  default: "bg-slate-500/10 text-slate-600 border-slate-200",
+};
 
 export function FlatCard({ flat, tenant }: { flat: any; tenant: any }) {
   const isOccupied = !!tenant;
+  const status = flat.status || (isOccupied ? "Occupied" : "Vacant");
 
   return (
     <Dialog>
@@ -37,9 +47,12 @@ export function FlatCard({ flat, tenant }: { flat: any; tenant: any }) {
                 <p className="text-[10px] uppercase text-muted-foreground font-bold">{flat.buildings.name}</p>
               </div>
             </div>
-            <Badge variant={isOccupied ? "default" : "outline"} className="text-[10px]">
-              {isOccupied ? "OCCUPIED" : "VACANT"}
-            </Badge>
+            <div className="flex flex-col items-end gap-1">
+              <Badge className={cn("text-[10px] border", statusConfig[status] ?? statusConfig["default"])}>
+                {status.toUpperCase()}
+              </Badge>
+              <EditStatusModal flat={flat} />
+            </div>
           </div>
 
           {isOccupied ? (

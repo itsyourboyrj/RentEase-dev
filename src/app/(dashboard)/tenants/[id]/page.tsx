@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Phone, User, MapPin, FileText, Upload, Loader2, ArrowLeft, Trash2, Camera, X } from "lucide-react";
+import { Phone, User, MapPin, FileText, Upload, Loader2, ArrowLeft, Trash2, Camera, X, ShieldCheck, Briefcase, Users2, Zap } from "lucide-react";
 import { uploadDocument, updateProfilePicture, removeProfilePicture, deleteDocument } from "@/app/documents/actions";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -139,10 +139,15 @@ function TenantProfileContent({ id }: { id: string }) {
       <div className="grid md:grid-cols-3 gap-6">
         <Card className="md:col-span-2 shadow-lg border-none">
           <CardHeader><CardTitle className="text-lg">Personal Details</CardTitle></CardHeader>
-          <CardContent className="grid grid-cols-2 gap-6 text-sm">
+          <CardContent className="grid grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
             <Detail label="Phone" value={tenant.phone} icon={Phone} />
+            <Detail label="Aadhar Number" value={maskAadhar(tenant.aadhar_number)} icon={ShieldCheck} />
+            <Detail label="Gender" value={tenant.gender || "N/A"} icon={User} />
+            <Detail label="Employment" value={tenant.employment_status || "N/A"} icon={Briefcase} />
+            <Detail label="Total Members" value={`${tenant.occupancy_count ?? 1} Person(s)`} icon={Users2} />
+            <Detail label="Opening Meter" value={tenant.initial_meter_reading != null ? String(tenant.initial_meter_reading) : "N/A"} icon={Zap} />
+            <Detail label="Emergency Contact" value={tenant.emergency_contact || "N/A"} icon={Phone} />
             <Detail label="Permanent Address" value={tenant.address || "N/A"} icon={MapPin} />
-            <Detail label="Emergency Contact" value={tenant.emergency_contact || "N/A"} icon={User} />
             <Detail label="Join Date" value={new Date(tenant.join_date).toLocaleDateString()} icon={FileText} />
           </CardContent>
         </Card>
@@ -202,6 +207,13 @@ function TenantProfileContent({ id }: { id: string }) {
       </Card>
     </div>
   );
+}
+
+function maskAadhar(aadhar: string | null | undefined): string {
+  if (!aadhar) return "N/A";
+  const digits = aadhar.replace(/\D/g, "");
+  if (digits.length !== 12) return "N/A";
+  return `XXXX-XXXX-${digits.slice(8)}`;
 }
 
 function Detail({ label, value, icon: Icon }: { label: string; value: string; icon: any }) {

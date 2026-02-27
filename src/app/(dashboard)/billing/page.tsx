@@ -8,7 +8,7 @@ export default async function BillingPage() {
 
   if (!user) return <div>Unauthorized</div>;
 
-  const { data: owner } = await supabase.from('owners').select('*').eq('id', user.id).maybeSingle();
+  const { data: owner } = await supabase.from("owners").select("*").eq("id", user.id).maybeSingle();
 
   const { data: bills } = await supabase
     .from("bills")
@@ -16,6 +16,7 @@ export default async function BillingPage() {
     .order("created_at", { ascending: false });
 
   const { data: tenants } = await supabase.from("tenants").select("*, flats(*, buildings(*))").eq("is_active", true);
+  const { data: buildings } = await supabase.from("buildings").select("id, name");
 
   return (
     <div className="space-y-6">
@@ -24,7 +25,7 @@ export default async function BillingPage() {
         <NewBillModal tenants={tenants || []} owner={owner} />
       </div>
 
-      <BillingTable bills={bills || []} owner={owner} />
+      <BillingTable bills={bills || []} owner={owner} buildings={buildings || []} />
     </div>
   );
 }

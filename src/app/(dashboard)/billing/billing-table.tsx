@@ -10,19 +10,31 @@ import { MessageCircle, Trash2, MoreVertical } from "lucide-react";
 import { deleteBills, updateBillStatus } from "@/app/billing/actions";
 import { toast } from "sonner";
 import { BillViewButton } from "@/components/billing/bill-view-button";
+import { DataFilter } from "@/components/shared/data-filter";
 
-export function BillingTable({ bills, owner }: any) {
+export function BillingTable({ bills, owner, buildings }: any) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [search, setSearch] = useState("");
+  const [buildingFilter, setBuildingFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("Due");
 
-  // Keep selection in sync when bills change
+  // Clear selection when filters or bills change
   useEffect(() => {
-    const validIds = new Set(bills.map((b: any) => b.id));
-    setSelectedIds(prev => prev.filter(id => validIds.has(id)));
-  }, [bills]);
+    setSelectedIds([]);
+  }, [bills, search, buildingFilter, statusFilter]);
+
+  const filteredBills = bills.filter((b: any) => {
+    const tenantName = (b.tenants?.name ?? "").toLowerCase();
+    const searchTerm = (search ?? "").toLowerCase();
+    const matchesSearch = tenantName.includes(searchTerm);
+    const matchesBuilding = buildingFilter === "all" || b.tenants?.flats?.building_id === buildingFilter;
+    const matchesStatus = statusFilter === "all" || (b.status || (b.is_paid ? "Paid" : "Due")) === statusFilter;
+    return matchesSearch && matchesBuilding && matchesStatus;
+  });
 
   const toggleSelectAll = () => {
-    const allIds = bills.map((b: any) => b.id);
-    if (selectedIds.length === bills.length) setSelectedIds([]);
+    const allIds = filteredBills.map((b: any) => b.id);
+    if (selectedIds.length === filteredBills.length && filteredBills.length > 0) setSelectedIds([]);
     else setSelectedIds(allIds);
   };
 
@@ -85,6 +97,19 @@ export function BillingTable({ bills, owner }: any) {
 
   return (
     <div className="space-y-4">
+      <DataFilter
+        searchPlaceholder="Search by tenant name..."
+        searchValue={search}
+        onSearchChange={setSearch}
+        buildings={buildings}
+        selectedBuilding={buildingFilter}
+        onBuildingChange={setBuildingFilter}
+        statusOptions={["Due", "Paid", "Advance Paid"]}
+        selectedStatus={statusFilter}
+        onStatusChange={setStatusFilter}
+        onClear={() => { setSearch(""); setBuildingFilter("all"); setStatusFilter("all"); }}
+      />
+
       {selectedIds.length > 0 && (
         <div className="flex items-center justify-between bg-destructive/10 p-2 px-4 rounded-lg border border-destructive/20 animate-in fade-in slide-in-from-top-2">
           <span className="text-sm font-bold text-destructive">{selectedIds.length} selected</span>
@@ -100,7 +125,7 @@ export function BillingTable({ bills, owner }: any) {
             <TableRow>
               <TableHead className="w-10">
                 <Checkbox
-                  checked={selectedIds.length === bills.length && bills.length > 0}
+                  checked={selectedIds.length === filteredBills.length && filteredBills.length > 0}
                   onCheckedChange={toggleSelectAll}
                 />
               </TableHead>
@@ -113,13 +138,13 @@ export function BillingTable({ bills, owner }: any) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {bills.length === 0 ? (
+            {filteredBills.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
-                  No bills generated yet.
+                  No bills match your filters.
                 </TableCell>
               </TableRow>
-            ) : bills.map((bill: any) => (
+            ) : filteredBills.map((bill: any) => (
               <TableRow key={bill.id} className={selectedIds.includes(bill.id) ? "bg-muted/50" : ""}>
                 <TableCell>
                   <Checkbox

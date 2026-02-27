@@ -12,11 +12,10 @@ export async function login(formData: FormData) {
 
   const { error } = await supabase.auth.signInWithPassword({ email, password })
 
-  if (error) throw new Error(error.message)
+  if (error) return { error: error.message }
 
-  // CRITICAL: Next.js 15 requires revalidation to sync the cookie properly
   revalidatePath('/', 'layout')
-  redirect('/')
+  return { success: true }
 }
 
 export async function signup(formData: FormData) {

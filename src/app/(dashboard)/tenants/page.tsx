@@ -1,115 +1,105 @@
-import { createClient } from "@/lib/supabase/server";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Users, Phone, Home } from "lucide-react";
-import Link from "next/link";
+"use client";
+
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { DataFilter } from "@/components/shared/data-filter";
 import { AddTenantModal } from "./add-tenant-modal";
+import { TenantCard } from "./tenant-card";
+import { Loader2 } from "lucide-react";
 
-export default async function TenantsPage() {
-  const supabase = await createClient();
+export default function TenantsPage() {
+  const [tenants, setTenants] = useState<any[]>([]);
+  const [buildings, setBuildings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch tenants with their flat and building info
-  const { data: tenants } = await supabase
-    .from("tenants")
-    .select(`
-      *,
-      flats (
-        flat_code,
-        buildings (name)
-      )
-    `)
-    .eq("is_active", true)
-    .order("created_at", { ascending: false });
+  const [search, setSearch] = useState("");
+  const [buildingFilter, setBuildingFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("Active");
 
-  // Fetch buildings and vacant flats for the "Add Tenant" form
-  const { data: buildings } = await supabase.from("buildings").select("id, name");
-  const { data: vacantFlats } = await supabase
-    .from("flats")
-    .select("id, flat_code, building_id")
-    .eq("is_occupied", false);
+  const supabase = createClient();
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [buildingsRes, tenantsRes] = await Promise.all([
+          supabase.from("buildings").select("id, name"),
+          supabase.from("tenants").select(`*, flats (*, buildings (*))`).order("created_at", { ascending: false }),
+        ]);
+
+        if (buildingsRes.error) {
+          console.error("Failed to load buildings:", buildingsRes.error.message);
+        } else {
+          setBuildings(buildingsRes.data || []);
+        }
+
+        if (tenantsRes.error) {
+          console.error("Failed to load tenants:", tenantsRes.error.message);
+        } else {
+          setTenants(tenantsRes.data || []);
+        }
+      } catch (err) {
+        console.error("Unexpected error loading data:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  const filteredTenants = tenants.filter(t => {
+    const safeName = (t.name ?? "").toLowerCase();
+    const safePhone = t.phone ?? "";
+    const safeFlatCode = (t.flats?.flat_code ?? "").toLowerCase();
+    const searchLower = (search ?? "").toLowerCase();
+    const matchesSearch =
+      safeName.includes(searchLower) ||
+      safePhone.includes(search) ||
+      safeFlatCode.includes(searchLower);
+    const matchesBuilding = buildingFilter === "all" || t.flats?.building_id === buildingFilter;
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "Active" ? (t.is_active ?? false) : !(t.is_active ?? false));
+    return matchesSearch && matchesBuilding && matchesStatus;
+  });
+
+  if (loading) return (
+    <div className="p-20 flex justify-center">
+      <Loader2 className="animate-spin text-primary" />
+    </div>
+  );
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 pb-20">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Tenants</h1>
-          <p className="text-muted-foreground">Manage active residents and their deposits.</p>
+          <h1 className="text-3xl font-black tracking-tighter">Tenants</h1>
+          <p className="text-muted-foreground">Detailed resident directory</p>
         </div>
-
-        <AddTenantModal
-          buildings={buildings || []}
-          vacantFlats={vacantFlats || []}
-        />
+        <AddTenantModal buildings={buildings} vacantFlats={[]} />
       </div>
 
-      <div className="rounded-md border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Contact</TableHead>
-              <TableHead>Property</TableHead>
-              <TableHead>Join Date</TableHead>
-              <TableHead>Deposit</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {!tenants || tenants.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
-                  No active tenants found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              tenants.map((tenant: any) => (
-                <TableRow key={tenant.id}>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
-                        {tenant.name.substring(0, 2).toUpperCase()}
-                      </div>
-                      {tenant.name}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="flex items-center gap-1 text-xs">
-                        <Phone className="h-3 w-3" /> {tenant.phone}
-                      </span>
-                      <span className="text-xs text-muted-foreground">{tenant.email}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="flex items-center gap-1 font-medium">
-                        <Home className="h-3 w-3" /> {tenant.flats?.flat_code}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {tenant.flats?.buildings?.name}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{new Date(tenant.join_date).toLocaleDateString()}</TableCell>
-                  <TableCell>₹{tenant.security_deposit?.toLocaleString()}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/tenants/${tenant.id}`}>View Profile</Link>
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <DataFilter
+        searchPlaceholder="Search by name, phone or flat..."
+        searchValue={search}
+        onSearchChange={setSearch}
+        buildings={buildings}
+        selectedBuilding={buildingFilter}
+        onBuildingChange={setBuildingFilter}
+        statusOptions={["Active", "Checked Out"]}
+        selectedStatus={statusFilter}
+        onStatusChange={setStatusFilter}
+        onClear={() => { setSearch(""); setBuildingFilter("all"); setStatusFilter("Active"); }}
+      />
+
+      {filteredTenants.length === 0 ? (
+        <div className="text-center py-20 text-muted-foreground">No tenants match your filters.</div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredTenants.map(tenant => (
+            <TenantCard key={tenant.id} tenant={tenant} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

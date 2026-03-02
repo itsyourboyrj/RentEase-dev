@@ -42,7 +42,7 @@ export function FlatCard({ flat, tenant }: { flat: any; tenant: any }) {
             "h-12 w-12 rounded-2xl flex items-center justify-center text-lg font-black shadow-inner border",
             isOccupied ? "bg-primary/10 text-primary border-primary/10" : "bg-slate-100 text-slate-400 border-slate-200"
           )}>
-            {(flat.flat_code ?? '').replace(/\D/g, '') || flat.flat_code?.[0] ?? ''}
+            {(flat.flat_code ?? '').replace(/\D/g, '') || (flat.flat_code?.[0] ?? '')}
           </div>
 
           {/* ACTIONS WRAPPER (Stops the card from opening when clicking icons) */}

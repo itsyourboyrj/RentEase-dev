@@ -1,6 +1,6 @@
 "use client";
 
-import { Document, Page, Text, View, StyleSheet, Image, Link } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 
 // Standard Font Setup
 const styles = StyleSheet.create({
@@ -174,7 +174,6 @@ export function InvoicePDF({ bill, tenant, owner, logoUrl }: any) {
   const currentReading = Number(bill.current_reading) || 0;
   const previousReading = Number(bill.previous_reading) || 0;
   const units = currentReading - previousReading;
-  const upiUrl = `upi://pay?pa=${encodeURIComponent(owner?.upi_id ?? '')}&pn=${encodeURIComponent(owner?.full_name ?? '')}&am=${encodeURIComponent(bill.total_amount ?? 0)}&cu=INR`;
 
   return (
     <Document>
@@ -197,7 +196,12 @@ export function InvoicePDF({ bill, tenant, owner, logoUrl }: any) {
             <View>
               <Image src={logoUrl} style={styles.logo} />
             </View>
-          ) : null}
+          ) : (
+            <View style={{ alignItems: 'flex-end' }}>
+              <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#4F46E5', letterSpacing: -1 }}>RentEase</Text>
+              <Text style={{ fontSize: 7, color: '#9CA3AF', marginTop: 2 }}>Property Management</Text>
+            </View>
+          )}
         </View>
 
         {/* Grid Table */}
@@ -249,7 +253,11 @@ export function InvoicePDF({ bill, tenant, owner, logoUrl }: any) {
               <Image src={owner.upi_qr_url} style={styles.qrCode} />
             )}
 
-            <Link src={upiUrl} style={styles.payButton}>PAY NOW</Link>
+            <View style={styles.payButton}>
+              <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold', textAlign: 'center' }}>
+                PAY TO: {owner?.upi_id || 'N/A'}
+              </Text>
+            </View>
           </View>
 
           <View style={styles.signatureSection}>

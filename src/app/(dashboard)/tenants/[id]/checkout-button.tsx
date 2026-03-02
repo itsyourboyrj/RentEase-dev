@@ -14,7 +14,13 @@ export function CheckoutButton({ tenantId, flatId }: { tenantId: string; flatId:
   async function handleCheckout() {
     setLoading(true);
     try {
-      await checkoutTenant(tenantId, flatId, 0);
+      const res = await checkoutTenant(tenantId, flatId, 0);
+      if (res?.error) {
+        toast.error(res.error);
+        setLoading(false);
+        setConfirming(false);
+        return;
+      }
       toast.success("Tenant checked out successfully.");
       router.push("/tenants");
     } catch {

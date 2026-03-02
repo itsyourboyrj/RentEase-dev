@@ -18,11 +18,12 @@ export function BillingTable({ bills, owner, buildings }: any) {
   const [search, setSearch] = useState("");
   const [buildingFilter, setBuildingFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("Due");
+  const [sortBy, setSortBy] = useState("newest");
 
   // Clear selection when filters or bills change
   useEffect(() => {
     setSelectedIds([]);
-  }, [bills, search, buildingFilter, statusFilter]);
+  }, [bills, search, buildingFilter, statusFilter, sortBy]);
 
   const filteredBills = bills.filter((b: any) => {
     const tenantName = (b.tenants?.name ?? "").toLowerCase();
@@ -31,6 +32,23 @@ export function BillingTable({ bills, owner, buildings }: any) {
     const matchesBuilding = buildingFilter === "all" || b.tenants?.flats?.building_id === buildingFilter;
     const matchesStatus = statusFilter === "all" || (b.status || (b.is_paid ? "Paid" : "Due")) === statusFilter;
     return matchesSearch && matchesBuilding && matchesStatus;
+  }).sort((a: any, b: any) => {
+    switch (sortBy) {
+      case "newest":
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      case "oldest":
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      case "amount-high":
+        return (b.total_amount ?? 0) - (a.total_amount ?? 0);
+      case "amount-low":
+        return (a.total_amount ?? 0) - (b.total_amount ?? 0);
+      case "tenant-asc":
+        return (a.tenants?.name ?? "").localeCompare(b.tenants?.name ?? "");
+      case "tenant-desc":
+        return (b.tenants?.name ?? "").localeCompare(a.tenants?.name ?? "");
+      default:
+        return 0;
+    }
   });
 
   const toggleSelectAll = () => {
@@ -108,7 +126,17 @@ export function BillingTable({ bills, owner, buildings }: any) {
         statusOptions={["Due", "Paid", "Advance Paid"]}
         selectedStatus={statusFilter}
         onStatusChange={setStatusFilter}
-        onClear={() => { setSearch(""); setBuildingFilter("all"); setStatusFilter("all"); }}
+        sortOptions={[
+          { value: "newest", label: "Newest First" },
+          { value: "oldest", label: "Oldest First" },
+          { value: "amount-high", label: "Amount (High-Low)" },
+          { value: "amount-low", label: "Amount (Low-High)" },
+          { value: "tenant-asc", label: "Tenant (A-Z)" },
+          { value: "tenant-desc", label: "Tenant (Z-A)" }
+        ]}
+        selectedSort={sortBy}
+        onSortChange={setSortBy}
+        onClear={() => { setSearch(""); setBuildingFilter("all"); setStatusFilter("all"); setSortBy("newest"); }}
       />
 
       {selectedIds.length > 0 && (

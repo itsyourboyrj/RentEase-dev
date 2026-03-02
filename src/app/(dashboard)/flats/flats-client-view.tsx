@@ -12,6 +12,7 @@ export function FlatsClientView({ flats, buildings }: { flats: any[]; buildings:
   const [search, setSearch] = useState("");
   const [buildingFilter, setBuildingFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("code-asc");
 
   const filtered = flats.filter(flat => {
     const status = deriveFlatStatus(flat);
@@ -19,6 +20,17 @@ export function FlatsClientView({ flats, buildings }: { flats: any[]; buildings:
     const matchesBuilding = buildingFilter === "all" || flat.building_id === buildingFilter;
     const matchesStatus = statusFilter === "all" || status === statusFilter;
     return matchesSearch && matchesBuilding && matchesStatus;
+  }).sort((a, b) => {
+    switch (sortBy) {
+      case "code-asc":
+        return (a.flat_code ?? "").localeCompare(b.flat_code ?? "");
+      case "code-desc":
+        return (b.flat_code ?? "").localeCompare(a.flat_code ?? "");
+      case "status":
+        return deriveFlatStatus(a).localeCompare(deriveFlatStatus(b));
+      default:
+        return 0;
+    }
   });
 
   return (
@@ -49,7 +61,14 @@ export function FlatsClientView({ flats, buildings }: { flats: any[]; buildings:
         statusOptions={["Occupied", "Vacant", "Booked"]}
         selectedStatus={statusFilter}
         onStatusChange={setStatusFilter}
-        onClear={() => { setSearch(""); setBuildingFilter("all"); setStatusFilter("all"); }}
+        sortOptions={[
+          { value: "code-asc", label: "Flat Code (A-Z)" },
+          { value: "code-desc", label: "Flat Code (Z-A)" },
+          { value: "status", label: "Status" }
+        ]}
+        selectedSort={sortBy}
+        onSortChange={setSortBy}
+        onClear={() => { setSearch(""); setBuildingFilter("all"); setStatusFilter("all"); setSortBy("code-asc"); }}
       />
 
       {filtered.length === 0 ? (

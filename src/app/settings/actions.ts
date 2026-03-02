@@ -80,6 +80,10 @@ export async function updateOwnerSettings(formData: FormData) {
     updates.upi_qr_url = `${publicUrl}?t=${Date.now()}`
   }
 
+  // Only update existing owner rows — never silently create new ones
+  const { data: existingOwner } = await supabase.from('owners').select('id').eq('id', user.id).single()
+  if (!existingOwner) return { error: "Owner profile not found. Please complete onboarding first." }
+
   const { error } = await supabase.from('owners').update(updates).eq('id', user.id)
   if (error) return { error: error.message }
 

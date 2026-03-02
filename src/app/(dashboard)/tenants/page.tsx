@@ -16,6 +16,7 @@ export default function TenantsPage() {
   const [search, setSearch] = useState("");
   const [buildingFilter, setBuildingFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("Active");
+  const [sortBy, setSortBy] = useState("newest");
 
   const supabase = createClient();
 
@@ -61,6 +62,19 @@ export default function TenantsPage() {
       statusFilter === "all" ||
       (statusFilter === "Active" ? (t.is_active ?? false) : !(t.is_active ?? false));
     return matchesSearch && matchesBuilding && matchesStatus;
+  }).sort((a, b) => {
+    switch (sortBy) {
+      case "name-asc":
+        return (a.name ?? "").localeCompare(b.name ?? "");
+      case "name-desc":
+        return (b.name ?? "").localeCompare(a.name ?? "");
+      case "newest":
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      case "oldest":
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      default:
+        return 0;
+    }
   });
 
   if (loading) return (
@@ -89,7 +103,15 @@ export default function TenantsPage() {
         statusOptions={["Active", "Checked Out"]}
         selectedStatus={statusFilter}
         onStatusChange={setStatusFilter}
-        onClear={() => { setSearch(""); setBuildingFilter("all"); setStatusFilter("Active"); }}
+        sortOptions={[
+          { value: "newest", label: "Newest First" },
+          { value: "oldest", label: "Oldest First" },
+          { value: "name-asc", label: "Name (A-Z)" },
+          { value: "name-desc", label: "Name (Z-A)" }
+        ]}
+        selectedSort={sortBy}
+        onSortChange={setSortBy}
+        onClear={() => { setSearch(""); setBuildingFilter("all"); setStatusFilter("Active"); setSortBy("newest"); }}
       />
 
       {tenants.length === 0 ? (

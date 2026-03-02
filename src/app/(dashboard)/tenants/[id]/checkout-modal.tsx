@@ -21,12 +21,17 @@ export function CheckoutModal({ tenant }: { tenant: any }) {
     }
     setLoading(true);
     try {
-      await checkoutTenant(tenant.id, tenant.flat_id, finalReading);
+      const res = await checkoutTenant(tenant.id, tenant.flat_id, finalReading);
+      if (res?.error) {
+        toast.error(res.error);
+        setLoading(false);
+        return;
+      }
       toast.success("Tenant checked out. Flat is now Vacant.");
       setOpen(false);
       window.location.reload();
-    } catch (err: any) {
-      toast.error(err instanceof Error ? err.message : String(err));
+    } catch {
+      toast.error("Check-out failed. Please try again.");
       setLoading(false);
     }
   }

@@ -1,6 +1,5 @@
 import { Sidebar } from "@/components/layout/sidebar";
 import { LanguageProvider } from "@/lib/language-context";
-import { Footer } from "@/components/shared/footer";
 import Link from "next/link";
 
 export default function DashboardLayout({
@@ -22,9 +21,8 @@ export default function DashboardLayout({
             <Link href="/" className="font-black text-primary tracking-tighter italic text-xl">RentEase</Link>
           </header>
 
-          <main className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-12 relative z-10">
+          <main className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-12 relative z-10 pb-28">
             {children}
-            <Footer />
           </main>
         </div>
       </div>

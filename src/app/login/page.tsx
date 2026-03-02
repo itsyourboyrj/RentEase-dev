@@ -13,7 +13,6 @@ import {
   DialogDescription
 } from "@/components/ui/dialog";
 import { Building2, ArrowRight, Loader2, CheckCircle2, Mail, ShieldCheck, Sparkles } from "lucide-react";
-import { Footer } from "@/components/shared/footer";
 import { toast } from "sonner";
 
 type View = "login" | "signup" | "forgot" | "otp-request" | "otp-verify";
@@ -84,7 +83,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#f8fafc] relative overflow-hidden font-sans">
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#f8fafc] relative overflow-hidden font-sans pb-28">
       {/* SUCCESS POPUP */}
       <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
         <DialogContent className="sm:max-w-md border-none bg-background p-8 text-center flex flex-col items-center">
@@ -253,7 +252,6 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }

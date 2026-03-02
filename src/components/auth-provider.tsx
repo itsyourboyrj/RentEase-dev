@@ -7,15 +7,29 @@ const AuthContext = createContext<any>({ user: null, owner: null, loading: true 
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<{ user: any; owner: any; loading: boolean }>({ user: null, owner: null, loading: true });
-  const supabase = createClient();
 
   useEffect(() => {
+    const supabase = createClient();
     async function getInitialAuth() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: owner } = await supabase.from('owners').select('*').eq('id', user.id).single();
-        setState({ user, owner, loading: false });
-      } else {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          let owner = null;
+          try {
+            const { data, error } = await supabase.from('owners').select('*').eq('id', user.id).single();
+            if (error) {
+              console.error("Failed to fetch owner profile:", error.message);
+            } else {
+              owner = data;
+            }
+          } catch (e) {
+            console.error("Owner lookup failed:", e);
+          }
+          setState({ user, owner, loading: false });
+        } else {
+          setState({ user: null, owner: null, loading: false });
+        }
+      } catch {
         setState({ user: null, owner: null, loading: false });
       }
     }

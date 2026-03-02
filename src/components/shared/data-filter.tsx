@@ -15,6 +15,9 @@ export function DataFilter({
   statusOptions,
   selectedStatus,
   onStatusChange,
+  sortOptions,
+  selectedSort,
+  onSortChange,
   onClear
 }: any) {
   return (
@@ -51,6 +54,19 @@ export function DataFilter({
               <SelectItem value="all">All Status</SelectItem>
               {statusOptions.map((opt: any) => (
                 <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
+        {sortOptions && (
+          <Select value={selectedSort} onValueChange={onSortChange}>
+            <SelectTrigger className="w-[150px] h-11 bg-card border-none shadow-sm rounded-xl">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              {sortOptions.map((opt: any) => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>

@@ -16,12 +16,23 @@ export default function BuildingsPage() {
   const supabase = createClient();
 
   async function fetchBuildings() {
-    const { data } = await supabase
-      .from("buildings")
-      .select("*")
-      .order("created_at", { ascending: false });
-    setBuildings(data || []);
-    setLoading(false);
+    try {
+      const { data, error } = await supabase
+        .from("buildings")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) {
+        console.error("Failed to fetch buildings:", error.message);
+        toast.error("Failed to load buildings: " + error.message);
+        setBuildings([]);
+      } else {
+        setBuildings(data || []);
+      }
+    } catch {
+      setBuildings([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {

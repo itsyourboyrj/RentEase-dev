@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Calculator } from "lucide-react";
+import { Plus, Calculator, AlertCircle } from "lucide-react";
 import { createBill, saveInvoiceUrl } from "@/app/billing/actions";
 import { pdf } from "@react-pdf/renderer";
 import { toast } from "sonner";
@@ -27,18 +27,21 @@ export function NewBillModal({ tenants, owner }: { tenants: any[], owner: any })
   const [prevReading, setPrevReading] = useState(0);
   const [currReading, setCurrReading] = useState(0);
   const [generatedBill, setGeneratedBill] = useState<any>(null);
+  const [isDuplicate, setIsDuplicate] = useState(false);
+  const [billingMonth, setBillingMonth] = useState(getLocalDateString().slice(0, 7));
   const supabase = createClient();
 
   const tenant = tenants.find(t => t.id === selectedTenantId);
 
-  // Auto-fetch the correct starting meter reading when tenant changes
+  // Auto-fetch the correct starting meter reading + check for duplicates when tenant/month changes
   useEffect(() => {
     if (!selectedTenantId) return;
 
     let cancelled = false;
 
-    async function getLatestReading() {
+    async function getLatestReadingAndCheckDuplicate() {
       try {
+        // Fetch latest reading
         const { data: lastBill, error } = await supabase
           .from('bills')
           .select('current_reading')
@@ -60,6 +63,21 @@ export function NewBillModal({ tenants, owner }: { tenants: any[], owner: any })
           const t = tenants.find(t => t.id === selectedTenantId);
           setPrevReading(t?.initial_meter_reading || 0);
         }
+
+        // Check for duplicate bill
+        if (billingMonth) {
+          const { data: existing } = await supabase
+            .from('bills')
+            .select('id')
+            .eq('tenant_id', selectedTenantId)
+            .eq('billing_month', billingMonth)
+            .limit(1)
+            .maybeSingle();
+
+          if (!cancelled) {
+            setIsDuplicate(!!existing);
+          }
+        }
       } catch (err) {
         if (!cancelled) {
           console.error('Unexpected error fetching meter reading:', err);
@@ -68,10 +86,10 @@ export function NewBillModal({ tenants, owner }: { tenants: any[], owner: any })
     }
 
     setCurrReading(0);
-    getLatestReading();
+    getLatestReadingAndCheckDuplicate();
 
     return () => { cancelled = true; };
-  }, [selectedTenantId, supabase, tenants]);
+  }, [selectedTenantId, billingMonth, supabase, tenants]);
 
   // Auto-calculate
   const units = Math.max(0, currReading - prevReading);
@@ -81,6 +99,11 @@ export function NewBillModal({ tenants, owner }: { tenants: any[], owner: any })
   const totalAmount = elecAmount + rentAmount;
 
   async function handleSubmit(formData: FormData) {
+    if (!owner?.upi_id) {
+      toast.error("Please set your UPI ID in Settings first.");
+      return;
+    }
+
     try {
       // 1. Create the bill record
       const bill = await createBill(formData);
@@ -172,7 +195,7 @@ export function NewBillModal({ tenants, owner }: { tenants: any[], owner: any })
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Billing Month</Label>
-                <Input name="billing_month" type="month" defaultValue={getLocalDateString().slice(0, 7)} required />
+                <Input name="billing_month" type="month" value={billingMonth} onChange={(e) => setBillingMonth(e.target.value)} required />
               </div>
               <div className="space-y-2">
                 <Label>Rent (₹)</Label>
@@ -244,7 +267,16 @@ export function NewBillModal({ tenants, owner }: { tenants: any[], owner: any })
               <input type="hidden" name="total_amount" value={totalAmount} />
             </div>
 
-            <Button type="submit" className="w-full">Save & Generate Invoice</Button>
+            {isDuplicate && (
+              <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-sm font-bold">
+                <AlertCircle className="h-5 w-5 shrink-0" />
+                Bill already exists for this month. Delete the old one to re-generate.
+              </div>
+            )}
+
+            <Button type="submit" disabled={isDuplicate} className="w-full h-14">
+              {isDuplicate ? "DUPLICATE DETECTED" : "GENERATE INVOICE"}
+            </Button>
           </form>
         ) : (
           <div className="py-6 text-center space-y-4">

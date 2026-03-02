@@ -134,16 +134,24 @@ const styles = StyleSheet.create({
   },
 
   payButton: {
-    marginTop: 15,
+    marginTop: 20,
     backgroundColor: '#4F46E5',
-    color: 'white',
-    padding: '8 15',
-    borderRadius: 6,
-    fontSize: 10,
+    color: '#FFFFFF',
+    padding: '12 24',
+    borderRadius: 12,
+    fontSize: 12,
     fontWeight: 'bold',
     textAlign: 'center',
     textDecoration: 'none',
-    width: 120
+    alignSelf: 'center',
+    width: 160
+  },
+
+  payButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 
   signatureSection: {
@@ -271,13 +279,13 @@ export function InvoicePDF({ bill, tenant, owner, logoUrl }: any) {
 
             {upiUrl ? (
               <Link src={upiUrl} style={styles.payButton}>
-                <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold', textAlign: 'center' }}>
+                <Text style={styles.payButtonText}>
                   PAY NOW / अभी भुगतान करें
                 </Text>
               </Link>
             ) : (
               <View style={styles.payButton}>
-                <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold', textAlign: 'center' }}>
+                <Text style={styles.payButtonText}>
                   PAY TO: {owner?.upi_id || 'N/A'}
                 </Text>
               </View>

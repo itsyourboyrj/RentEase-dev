@@ -2,7 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import { NewBillModal } from "./new-bill-modal";
 import { BillingTable } from "./billing-table";
 import { BoutiqueEmptyState } from "@/components/shared/empty-state";
-import { Receipt } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Receipt, Zap } from "lucide-react";
+import Link from "next/link";
 
 export default async function BillingPage() {
   const supabase = await createClient();
@@ -21,10 +23,21 @@ export default async function BillingPage() {
   const { data: buildings } = await supabase.from("buildings").select("id, name");
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-black tracking-tighter">Billing</h1>
-        <NewBillModal tenants={tenants || []} owner={owner} />
+    <div className="space-y-6 pb-20">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-black tracking-tighter">Billing</h1>
+          <p className="text-slate-500 font-medium italic">Manage invoices and collections</p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Button variant="outline" className="rounded-2xl font-bold h-11 border-slate-200" asChild>
+            <Link href="/billing/bulk">
+              <Zap className="mr-2 h-4 w-4 fill-amber-400 text-amber-400" /> Fast Billing
+            </Link>
+          </Button>
+          <NewBillModal tenants={tenants || []} owner={owner} />
+        </div>
       </div>
 
       {!bills || bills.length === 0 ? (

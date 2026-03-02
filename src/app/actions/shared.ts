@@ -38,7 +38,7 @@ export async function deleteEntity(table: string, id: string) {
       .single()
 
     if (fetchError || !record) return { error: 'Record not found' }
-    if ((record as Record<string, unknown>)[config.ownerField!] !== user.id) {
+    if ((record as unknown as Record<string, unknown>)[config.ownerField!] !== user.id) {
       return { error: 'Unauthorized' }
     }
   } else if (config.join) {
@@ -49,7 +49,7 @@ export async function deleteEntity(table: string, id: string) {
       .single()
 
     if (fetchError || !record) return { error: 'Record not found' }
-    const joined = (record as Record<string, unknown>)[config.join!.split('(')[0]] as Record<string, unknown> | null
+    const joined = (record as unknown as Record<string, unknown>)[config.join!.split('(')[0]] as Record<string, unknown> | null
     if (!joined || joined.owner_id !== user.id) {
       return { error: 'Unauthorized' }
     }

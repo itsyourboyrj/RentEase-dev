@@ -83,18 +83,17 @@ export async function confirmAccountDeletion(token: string) {
     token,
     type: 'email',
   })
-  if (verifyError) return { error: 'Invalid or expired code' }
+  if (verifyError) return { error: 'The OTP you entered is incorrect' }
 
-  // 2. Delete owner record (cascades to related data via foreign keys)
-  const { error: deleteError } = await supabase.from('owners').delete().eq('id', user.id)
-  if (deleteError) return { error: `Failed to delete account data: ${deleteError.message}` }
+  // 2. Clear all DB data (cascade will take care of buildings/flats/etc)
+  const { error: dbError } = await supabase.from('owners').delete().eq('id', user.id)
+  if (dbError) return { error: 'Database cleanup failed: ' + dbError.message }
 
-  // 3. Delete the auth user via admin client
+  // 3. Delete the Auth user via admin client, then sign out
   const adminClient = createAdminClient()
-  const { error: authDeleteError } = await adminClient.auth.admin.deleteUser(user.id)
-  if (authDeleteError) return { error: `Failed to remove auth account: ${authDeleteError.message}` }
+  const { error: adminError } = await adminClient.auth.admin.deleteUser(user.id)
+  if (adminError) return { error: 'Failed to delete auth user: ' + adminError.message }
 
-  // 4. Sign out
   await supabase.auth.signOut()
   return { success: true }
 }

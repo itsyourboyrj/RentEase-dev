@@ -11,6 +11,7 @@ import { Loader2, Users } from "lucide-react";
 export default function TenantsPage() {
   const [tenants, setTenants] = useState<any[]>([]);
   const [buildings, setBuildings] = useState<any[]>([]);
+  const [vacantFlats, setVacantFlats] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
@@ -23,8 +24,9 @@ export default function TenantsPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [buildingsRes, tenantsRes] = await Promise.all([
+        const [buildingsRes, vacantFlatsRes, tenantsRes] = await Promise.all([
           supabase.from("buildings").select("id, name"),
+          supabase.from("flats").select("id, flat_code, building_id").eq("status", "Vacant"),
           supabase.from("tenants").select(`*, flats (*, buildings (*))`).order("created_at", { ascending: false }),
         ]);
 
@@ -32,6 +34,12 @@ export default function TenantsPage() {
           console.error("Failed to load buildings:", buildingsRes.error.message);
         } else {
           setBuildings(buildingsRes.data || []);
+        }
+
+        if (vacantFlatsRes.error) {
+          console.error("Failed to load vacant flats:", vacantFlatsRes.error.message);
+        } else {
+          setVacantFlats(vacantFlatsRes.data || []);
         }
 
         if (tenantsRes.error) {
@@ -90,7 +98,10 @@ export default function TenantsPage() {
           <h1 className="text-3xl font-black tracking-tighter">Tenants</h1>
           <p className="text-muted-foreground">Detailed resident directory</p>
         </div>
-        <AddTenantModal buildings={buildings} vacantFlats={[]} />
+        <AddTenantModal buildings={buildings} vacantFlats={vacantFlats} onTenantAdded={async () => {
+          const { data } = await supabase.from("flats").select("id, flat_code, building_id").eq("status", "Vacant");
+          setVacantFlats(data || []);
+        }} />
       </div>
 
       <DataFilter

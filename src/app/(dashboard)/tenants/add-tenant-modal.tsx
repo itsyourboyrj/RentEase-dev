@@ -22,16 +22,27 @@ import { Plus, Loader2 } from "lucide-react";
 import { createTenant } from "@/app/tenants/actions";
 import { toast } from "sonner";
 
-export function AddTenantModal({ buildings, vacantFlats }: { buildings: any[], vacantFlats: any[] }) {
+export function AddTenantModal({ buildings, vacantFlats, onTenantAdded }: { buildings: any[], vacantFlats: any[], onTenantAdded?: () => void }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedBuilding, setSelectedBuilding] = useState<string>("");
+  const [selectedFlat, setSelectedFlat] = useState<string>("");
 
   // Filter flats based on the building chosen in the first dropdown
   const filteredFlats = vacantFlats.filter(f => f.building_id === selectedBuilding);
 
+  const handleBuildingChange = (val: string) => {
+    setSelectedBuilding(val);
+    setSelectedFlat("");
+  };
+
   async function handleSubmit(formData: FormData) {
     if (loading) return;
+
+    if (!selectedFlat) {
+      toast.error("Please select a flat");
+      return;
+    }
 
     const occupancy = parseInt(formData.get('occupancy_count') as string);
     if (!Number.isFinite(occupancy) || occupancy < 1) {
@@ -49,6 +60,7 @@ export function AddTenantModal({ buildings, vacantFlats }: { buildings: any[], v
       await createTenant(formData);
       toast.success("Tenant onboarded successfully!");
       setOpen(false);
+      onTenantAdded?.();
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -71,7 +83,7 @@ export function AddTenantModal({ buildings, vacantFlats }: { buildings: any[], v
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Building</Label>
-              <Select onValueChange={setSelectedBuilding} required>
+              <Select onValueChange={handleBuildingChange} required>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Building" />
                 </SelectTrigger>
@@ -84,14 +96,20 @@ export function AddTenantModal({ buildings, vacantFlats }: { buildings: any[], v
             </div>
             <div className="space-y-2">
               <Label>Flat</Label>
-              <Select name="flat_id" disabled={!selectedBuilding} required>
+              <Select name="flat_id" value={selectedFlat} onValueChange={setSelectedFlat} disabled={!selectedBuilding} required>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select Flat" />
+                  <SelectValue placeholder={selectedBuilding ? "Choose Flat" : "Pick Building First"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {filteredFlats.map(f => (
-                    <SelectItem key={f.id} value={f.id}>{f.flat_code}</SelectItem>
-                  ))}
+                  {filteredFlats.length > 0 ? (
+                    filteredFlats.map(f => (
+                      <SelectItem key={f.id} value={f.id}>{f.flat_code}</SelectItem>
+                    ))
+                  ) : (
+                    <div className="p-2 text-xs text-center text-muted-foreground italic">
+                      No vacant flats found
+                    </div>
+                  )}
                 </SelectContent>
               </Select>
             </div>

@@ -1,9 +1,11 @@
 export function Footer() {
   return (
-    <div className="fixed bottom-0 left-0 right-0 text-center py-6 px-4 select-none bg-gradient-to-t from-slate-900 via-slate-900 to-slate-900/80 backdrop-blur-md border-t border-slate-800/50">
-      <p className="text-sm font-bold text-slate-300 tracking-wide drop-shadow-lg">
-        Made with <span className="text-red-400 animate-pulse">❤️</span> &nbsp;|&nbsp; <span className="text-white">RentEase</span> — All Rights Reserved &nbsp;|&nbsp; <span className="text-slate-400">Cc- Ravi Raj</span>
-      </p>
+    <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-50 select-none">
+      <div className="px-4 py-1.5 rounded-full bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-white/30 dark:border-slate-700/40 shadow-sm">
+        <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 tracking-wide whitespace-nowrap">
+          Made with <span className="text-red-400">&#10084;</span> &middot; <span className="font-bold text-slate-700 dark:text-slate-200">RentEase</span> &middot; Cc- Ravi Raj
+        </p>
+      </div>
     </div>
   );
 }

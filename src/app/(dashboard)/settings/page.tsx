@@ -6,6 +6,7 @@ import { useLanguage } from "@/components/language-provider";
 import { useAuth } from "@/components/auth-provider";
 import { updateOwnerSettings, removeOwnerFile, updatePassword } from "@/app/settings/actions";
 import { authorizeEmailChange, finalizeEmailChange } from "@/app/auth/actions";
+import { initiateAccountDeletion, confirmAccountDeletion } from "@/app/actions/shared";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { User, Camera, Sun, Lock, QrCode, Loader2, X, Mail } from "lucide-react";
+import { User, Camera, Sun, Lock, QrCode, Loader2, X, Mail, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 function SettingsSkeleton() {
@@ -46,6 +47,11 @@ export default function SettingsPage() {
   const [otpToken, setOtpToken] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [emailChangeLoading, setEmailChangeLoading] = useState(false);
+
+  // Account deletion state
+  const [deleteOtpSent, setDeleteOtpSent] = useState(false);
+  const [deleteToken, setDeleteToken] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Instant preview states
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
@@ -213,7 +219,42 @@ export default function SettingsPage() {
     }
   }
 
-  if (loading || !owner) return <SettingsSkeleton />;
+  async function handleDeleteAccountRequest() {
+    setDeleteLoading(true);
+    try {
+      const res = await initiateAccountDeletion();
+      if (res?.success) {
+        setDeleteOtpSent(true);
+        toast.success("Security code sent to your email");
+      } else {
+        toast.error(res?.error || "Failed to send code");
+      }
+    } catch {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setDeleteLoading(false);
+    }
+  }
+
+  async function handleConfirmDelete() {
+    if (!deleteToken) { toast.error("Please enter the verification code"); return; }
+    setDeleteLoading(true);
+    try {
+      const res = await confirmAccountDeletion(deleteToken);
+      if (res?.success) {
+        toast.success("Account deleted. Redirecting...");
+        window.location.href = '/login';
+      } else {
+        toast.error(res?.error || "Failed to delete account");
+        setDeleteLoading(false);
+      }
+    } catch {
+      toast.error("An unexpected error occurred");
+      setDeleteLoading(false);
+    }
+  }
+
+  if (loading) return <SettingsSkeleton />;
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-20 p-4">
@@ -438,6 +479,46 @@ export default function SettingsPage() {
                   )}
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* DANGER ZONE */}
+          <Card className="border-2 border-red-100 shadow-lg overflow-hidden bg-red-50/20">
+            <CardHeader className="bg-red-50/50">
+              <CardTitle className="text-red-600 flex items-center gap-2 font-black text-lg">
+                <AlertCircle className="h-5 w-5" /> Danger Zone
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-bold text-slate-600">Delete Account & All Data</p>
+                  <p className="text-xs text-muted-foreground">This will permanently remove your account and all associated data.</p>
+                </div>
+                {!deleteOtpSent ? (
+                  <Button variant="destructive" className="rounded-2xl font-bold shrink-0" onClick={handleDeleteAccountRequest} disabled={deleteLoading}>
+                    {deleteLoading && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
+                    Delete Account
+                  </Button>
+                ) : (
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Enter OTP"
+                      className="w-28 rounded-xl"
+                      maxLength={6}
+                      value={deleteToken}
+                      onChange={(e) => setDeleteToken(e.target.value)}
+                    />
+                    <Button variant="destructive" className="rounded-xl font-bold shrink-0" onClick={handleConfirmDelete} disabled={deleteLoading}>
+                      {deleteLoading && <Loader2 className="animate-spin mr-2 h-4 w-4" />}
+                      Confirm
+                    </Button>
+                    <Button variant="ghost" size="sm" className="shrink-0" onClick={() => { setDeleteOtpSent(false); setDeleteToken(""); }}>
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
 

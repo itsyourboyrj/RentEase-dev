@@ -27,19 +27,44 @@ export default async function DashboardPage() {
 
   if (!user) return null;
 
-  // 1. Fetch Owner Profile
-  const { data: owner } = await supabase
-    .from('owners')
-    .select('*')
-    .eq('id', user.id)
-    .single();
+  // 1. Fetch Owner Profile & Counts simultaneously for speed
+  const [ownerRes, buildingsCountRes, flatsCountRes, activeTenantsRes] = await Promise.all([
+    supabase.from('owners').select('*').eq('id', user.id).single(),
+    supabase.from("buildings").select("*", { count: 'exact', head: true }),
+    supabase.from("flats").select("*", { count: 'exact', head: true }),
+    supabase.from("tenants").select("*", { count: 'exact', head: true }).eq("is_active", true),
+  ]);
 
-  // 2. Fetch Summary Stats
-  const { count: buildingCount } = await supabase.from("buildings").select("*", { count: 'exact', head: true });
-  const { count: flatCount } = await supabase.from("flats").select("*", { count: 'exact', head: true });
-  const { count: tenantCount } = await supabase.from("tenants").select("*", { count: 'exact', head: true });
+  const owner = ownerRes.data;
+  const buildingCount = buildingsCountRes.count || 0;
+  const flatCount = flatsCountRes.count || 0;
+  const tenantCount = activeTenantsRes.count || 0;
 
-  // 3. Calculate Dues
+  // Logic: Is the user a "First Timer"?
+  const isProfileIncomplete = !owner?.full_name || !owner?.phone;
+  const hasNoData = buildingCount === 0;
+
+  // --- SHOW ONBOARDING IF BRAND NEW ---
+  if (!owner || isProfileIncomplete || hasNoData) {
+    return (
+      <div className="space-y-8 animate-in fade-in duration-700">
+        <OnboardingWizard buildingCount={buildingCount} />
+        <div className="flex flex-col items-center justify-center min-h-[60vh]">
+          <BoutiqueEmptyState
+            icon={!owner || isProfileIncomplete ? UserCircle : Building2}
+            title={!owner || isProfileIncomplete ? "Finish your Setup" : "Start your Empire"}
+            description={!owner || isProfileIncomplete
+              ? "You're almost there! We need your landlord details and UPI ID before you can start managing properties."
+              : "Your profile is set! Now, let's add your first building to start managing tenants."}
+            buttonText={!owner || isProfileIncomplete ? "Setup Profile" : "Add First Building"}
+            href={!owner || isProfileIncomplete ? "/settings" : "/buildings"}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // --- SHOW PROFESSIONAL DASHBOARD FOR REGULAR USERS ---
   const { data: unpaidBills } = await supabase
     .from("bills")
     .select("total_amount")
@@ -47,76 +72,25 @@ export default async function DashboardPage() {
 
   const totalDues = unpaidBills?.reduce((sum, bill) => sum + Number(bill.total_amount), 0) || 0;
 
-  // 4. Fetch Overdue Bills
   const { data: overdueBills } = await supabase
     .from("bills")
     .select(`*, tenants (name, phone, flats (flat_code))`)
     .eq("is_paid", false)
     .limit(5);
 
-  // --- LOGIC: CHECK FOR EMPTY PROFILE OR BUILDINGS ---
-  if (!owner) {
-    return (
-      <div className="space-y-8">
-        <OnboardingWizard buildingCount={buildingCount ?? 0} />
-        <BoutiqueEmptyState
-          icon={UserCircle}
-          title="Finish your Setup"
-          description="You're almost there! We need your landlord details and UPI ID before you can start managing properties."
-          buttonText="Setup Profile"
-          href="/settings"
-        />
-      </div>
-    );
-  }
-
-  const isProfileIncomplete = !owner.full_name || !owner.phone;
-
-  if (isProfileIncomplete) {
-    return (
-      <div className="space-y-8">
-        <OnboardingWizard buildingCount={buildingCount || 0} />
-        <BoutiqueEmptyState
-          icon={UserCircle}
-          title="Finish your Setup"
-          description="You're almost there! We need your landlord details and UPI ID before you can start managing properties."
-          buttonText="Setup Profile"
-          href="/settings"
-        />
-      </div>
-    );
-  }
-
-  if (!buildingCount) {
-    return (
-      <div className="space-y-8">
-        <OnboardingWizard buildingCount={0} />
-        <BoutiqueEmptyState
-          icon={Building2}
-          title="No Buildings Yet"
-          description="Add your first building to start managing flats and tenants."
-          buttonText="Add Building"
-          href="/buildings"
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-8 pb-10">
-      <OnboardingWizard buildingCount={buildingCount || 0} />
-
+    <div className="space-y-8 pb-10 animate-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col gap-1">
         <h1 className="text-4xl font-black tracking-tighter">Dashboard</h1>
-        <p className="text-slate-500 font-medium italic">Welcome back, {owner.full_name}</p>
+        <p className="text-slate-500 font-medium italic">Empowering your property management, {owner.full_name}</p>
       </div>
 
       {/* CLICKABLE STATS GRID */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <DashboardLink href="/buildings" title="Buildings" value={buildingCount} icon={Building2} desc="Manage locations" />
+        <DashboardLink href="/buildings" title="Buildings" value={buildingCount} icon={Building2} desc="Managed locations" />
         <DashboardLink href="/flats" title="Flats" value={flatCount} icon={DoorOpen} desc="View unit status" />
-        <DashboardLink href="/tenants" title="Tenants" value={tenantCount} icon={Users} desc="Active occupancy" />
-        <DashboardLink href="/billing" title="Dues" value={`₹${totalDues.toLocaleString()}`} icon={IndianRupee} desc="Action required" isAlert />
+        <DashboardLink href="/tenants" title="Tenants" value={tenantCount} icon={Users} desc="Active residents" />
+        <DashboardLink href="/billing" title="Dues" value={`\u20B9${totalDues.toLocaleString()}`} icon={IndianRupee} desc="Action required" isAlert />
       </div>
 
       <div className="grid gap-6 md:grid-cols-7">
@@ -149,7 +123,7 @@ export default async function DashboardPage() {
                     <TableRow key={bill.id} className="border-white/40 hover:bg-white/20">
                       <TableCell className="pl-6 font-bold">{bill.tenants?.name ?? "Unknown tenant"}</TableCell>
                       <TableCell className="text-xs font-black">{bill.tenants?.flats?.flat_code ?? "No flat"}</TableCell>
-                      <TableCell className="text-destructive font-black">₹{bill.total_amount}</TableCell>
+                      <TableCell className="text-destructive font-black">{`\u20B9${bill.total_amount}`}</TableCell>
                       <TableCell className="text-right pr-6">
                         <Button variant="ghost" size="sm" className="rounded-xl font-bold text-primary hover:bg-primary/10" asChild>
                           <Link href="/billing">Remind</Link>

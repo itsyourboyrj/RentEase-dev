@@ -8,6 +8,7 @@ import { Plus, MapPin, Zap, Building2 as BuildingIcon, Loader2 } from "lucide-re
 import { createBuilding } from "@/app/buildings/actions";
 import { toast } from "sonner";
 import Link from "next/link";
+import { DeleteButton } from "@/components/shared/delete-button";
 
 export default function BuildingsPage() {
   const [buildings, setBuildings] = useState<any[]>([]);
@@ -94,8 +95,11 @@ export default function BuildingsPage() {
             </div>
           ) : (
             buildings.map((b) => (
-              <Card key={b.id} className="overflow-hidden border-none shadow-md hover:shadow-xl transition-all group">
+              <Card key={b.id} className="relative overflow-hidden border-none shadow-md hover:shadow-xl transition-all group">
                 <div className="h-2 bg-primary w-full" />
+                <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <DeleteButton table="buildings" id={b.id} label={b.name} />
+                </div>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-xl group-hover:text-primary transition-colors">{b.name}</CardTitle>
                 </CardHeader>

@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { BillViewButton } from "@/components/billing/bill-view-button";
 import { RecordPaymentModal } from "@/components/billing/record-payment-modal";
 import { DataFilter } from "@/components/shared/data-filter";
+import { DeleteButton } from "@/components/shared/delete-button";
 
 export function BillingTable({ bills, owner, buildings }: any) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -206,6 +207,7 @@ export function BillingTable({ bills, owner, buildings }: any) {
                   <div className="flex justify-end gap-1 items-center">
                     <RecordPaymentModal bill={bill} />
                     <BillViewButton bill={bill} tenant={bill.tenants} owner={owner} />
+                    <DeleteButton table="bills" id={bill.id} label={`${bill.billing_month} bill`} />
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>

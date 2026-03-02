@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { EditStatusModal } from "@/components/flats/edit-status-modal";
+import { DeleteButton } from "@/components/shared/delete-button";
 import { cn } from "@/lib/utils";
 
 const statusConfig: Record<string, string> = {
@@ -51,7 +52,10 @@ export function FlatCard({ flat, tenant }: { flat: any; tenant: any }) {
               <Badge className={cn("text-[10px] border", statusConfig[status] ?? statusConfig["default"])}>
                 {status.toUpperCase()}
               </Badge>
-              <EditStatusModal flat={flat} />
+              <div className="flex items-center gap-1">
+                <EditStatusModal flat={flat} />
+                <DeleteButton table="flats" id={flat.id} label={`Flat ${flat.flat_code}`} />
+              </div>
             </div>
           </div>
 

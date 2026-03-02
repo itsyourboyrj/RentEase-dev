@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Phone, Home, Calendar, ArrowRight, UserCircle } from "lucide-react";
 import Link from "next/link";
+import { DeleteButton } from "@/components/shared/delete-button";
 
 export function TenantCard({ tenant }: any) {
   return (
@@ -28,9 +29,12 @@ export function TenantCard({ tenant }: any) {
                 </p>
               </div>
             </div>
-            <Badge variant={tenant.is_active ? "default" : "secondary"} className="text-[10px] rounded-lg px-2">
-              {tenant.is_active ? "ACTIVE" : "OUT"}
-            </Badge>
+            <div className="flex flex-col items-end gap-1">
+              <Badge variant={tenant.is_active ? "default" : "secondary"} className="text-[10px] rounded-lg px-2">
+                {tenant.is_active ? "ACTIVE" : "OUT"}
+              </Badge>
+              <DeleteButton table="tenants" id={tenant.id} label={tenant.name} />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3 py-3 border-y border-dashed border-muted">

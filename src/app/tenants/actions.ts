@@ -13,8 +13,17 @@ export async function createTenant(formData: FormData) {
   const name = formData.get('name') as string
   const phone = formData.get('phone') as string
   const email = formData.get('email') as string
+  const aadhar_number = formData.get('aadhar_number') as string
+  const gender = formData.get('gender') as string
+  const marital_status = formData.get('marital_status') as string
+  const employment_status = formData.get('employment_status') as string
+  const rawOccupancy = parseInt(formData.get('occupancy_count') as string)
+  const occupancy_count = Number.isFinite(rawOccupancy) ? rawOccupancy : 1
+  const rawMeterReading = parseFloat(formData.get('initial_meter_reading') as string)
+  const initial_meter_reading = Number.isFinite(rawMeterReading) ? rawMeterReading : 0
   const join_date = formData.get('join_date') as string
-  const security_deposit = parseFloat(formData.get('security_deposit') as string)
+  const rawSecurityDeposit = parseFloat(formData.get('security_deposit') as string)
+  const security_deposit = Number.isFinite(rawSecurityDeposit) ? rawSecurityDeposit : null
   const meter_number = formData.get('meter_number') as string
   const emergency_contact = formData.get('emergency_contact') as string
   const address = formData.get('address') as string
@@ -26,6 +35,12 @@ export async function createTenant(formData: FormData) {
     name,
     phone,
     email,
+    aadhar_number,
+    gender,
+    marital_status,
+    employment_status,
+    occupancy_count,
+    initial_meter_reading,
     join_date,
     security_deposit,
     meter_number,
@@ -36,16 +51,30 @@ export async function createTenant(formData: FormData) {
 
   if (tenantError) throw new Error(tenantError.message)
 
-  // 2. Mark the flat as occupied
+  // 2. Verify flat ownership then update status to Occupied
+  const { data: flat, error: flatFetchError } = await supabase
+    .from('flats')
+    .select('id, buildings(owner_id)')
+    .eq('id', flat_id)
+    .single()
+
+  if (flatFetchError || !flat) throw new Error("Flat not found")
+  const building = (flat as any).buildings as { owner_id: string } | null
+  if (!building || building.owner_id !== user.id) throw new Error("Unauthorized: you do not own this flat")
+
   const { error: flatError } = await supabase
     .from('flats')
-    .update({ is_occupied: true })
+    .update({
+      status: 'Occupied',
+      is_occupied: true
+    })
     .eq('id', flat_id)
 
   if (flatError) throw new Error(flatError.message)
 
   revalidatePath('/tenants')
   revalidatePath('/flats')
+  revalidatePath('/')
 }
 
 export async function updateTenant(tenantId: string, formData: FormData) {
@@ -57,6 +86,9 @@ export async function updateTenant(tenantId: string, formData: FormData) {
   const rawOccupancy = formData.get('occupancy_count') as string
   const parsedOccupancy = rawOccupancy ? parseInt(rawOccupancy, 10) : undefined
 
+  const rawMeterReading = formData.get('initial_meter_reading') as string
+  const parsedMeterReading = rawMeterReading ? parseFloat(rawMeterReading) : undefined
+
   const updates: Record<string, unknown> = {
     name: formData.get('name') as string,
     phone: formData.get('phone') as string,
@@ -67,6 +99,10 @@ export async function updateTenant(tenantId: string, formData: FormData) {
     marital_status: formData.get('marital_status') as string,
     emergency_contact: formData.get('emergency_contact') as string,
     address: formData.get('address') as string,
+  }
+
+  if (Number.isFinite(parsedMeterReading)) {
+    updates.initial_meter_reading = parsedMeterReading
   }
 
   if (Number.isFinite(parsedOccupancy)) {

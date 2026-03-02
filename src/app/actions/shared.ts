@@ -58,6 +58,43 @@ export async function deleteEntity(table: string, id: string) {
   const { error } = await supabase.from(validTable).delete().eq('id', id)
   if (error) return { error: error.message }
 
+  // Clean up storage files after successful DB deletion
+  if (validTable === 'tenants') {
+    async function listAllStorageFiles(bucket: string, prefix: string): Promise<string[]> {
+      const { data: entries } = await supabase.storage.from(bucket).list(prefix)
+      if (!entries || entries.length === 0) return []
+      const paths: string[] = []
+      for (const entry of entries) {
+        const fullPath = `${prefix}/${entry.name}`
+        if (entry.id) {
+          paths.push(fullPath)
+        } else {
+          const nested = await listAllStorageFiles(bucket, fullPath)
+          paths.push(...nested)
+        }
+      }
+      return paths
+    }
+
+    // Clean up invoice PDFs
+    const invoicePaths = await listAllStorageFiles('invoices', id)
+    if (invoicePaths.length > 0) {
+      const { error: invoiceRemoveError } = await supabase.storage.from('invoices').remove(invoicePaths)
+      if (invoiceRemoveError) {
+        console.error(`Failed to remove invoice files for tenant ${id}:`, invoicePaths, invoiceRemoveError.message)
+      }
+    }
+
+    // Clean up KYC documents
+    const kycPaths = await listAllStorageFiles('tenant-documents', id)
+    if (kycPaths.length > 0) {
+      const { error: kycRemoveError } = await supabase.storage.from('tenant-documents').remove(kycPaths)
+      if (kycRemoveError) {
+        console.error(`Failed to remove KYC files for tenant ${id}:`, kycPaths, kycRemoveError.message)
+      }
+    }
+  }
+
   revalidatePath('/')
   return { success: true }
 }

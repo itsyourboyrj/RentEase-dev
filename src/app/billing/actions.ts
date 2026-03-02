@@ -126,6 +126,24 @@ export async function bulkCreateBills(billsData: any[]) {
   revalidatePath('/')
 }
 
+export async function saveInvoiceUrl(billId: string, url: string) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  if (!url || typeof url !== 'string') throw new Error('Invalid URL')
+  try { new URL(url) } catch { throw new Error('URL is not a valid URL') }
+
+  const { error } = await supabase
+    .from('bills')
+    .update({ pdf_url: url })
+    .eq('id', billId)
+
+  if (error) throw new Error(error.message)
+  revalidatePath('/billing')
+}
+
 export async function deleteBills(billIds: string[]) {
   if (!billIds.length) return
 
@@ -134,6 +152,31 @@ export async function deleteBills(billIds: string[]) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
+  // 1. Get PDF URLs before deleting rows
+  const { data: billsToCleanup } = await supabase
+    .from('bills')
+    .select('pdf_url')
+    .in('id', billIds)
+
+  // 2. Extract storage paths from URLs
+  const filesToDelete = (billsToCleanup ?? [])
+    .map(bill => {
+      if (!bill.pdf_url) return null
+      const parts = bill.pdf_url.split('invoices/')
+      return parts[1] // "tenant_id/bill_id.pdf"
+    })
+    .filter(Boolean) as string[]
+
+  // 3. Delete files from Supabase Storage
+  if (filesToDelete.length > 0) {
+    const { error: storageError } = await supabase.storage
+      .from('invoices')
+      .remove(filesToDelete)
+
+    if (storageError) console.error('Storage cleanup error:', storageError.message)
+  }
+
+  // 4. Delete DB records
   const { error } = await supabase
     .from('bills')
     .delete()

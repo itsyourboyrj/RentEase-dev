@@ -103,14 +103,14 @@ export function BillingTable({ bills, owner, buildings }: any) {
 
     const formattedAmount = bill.total_amount.toLocaleString('en-IN');
     const upiLink = `upi://pay?pa=${encodeURIComponent(owner.upi_id)}&pn=${encodeURIComponent(owner.full_name ?? '')}&am=${encodeURIComponent(bill.total_amount)}&cu=INR`;
+    const pdfLink = bill.pdf_url ? `\n\n📄 View Invoice: ${bill.pdf_url}` : "";
 
     const message =
       `*Rent Invoice / किराया चालान*\n\n` +
       `Hi ${tenant.name}, your rent for ${bill.billing_month} is *₹${formattedAmount}*.\n` +
-      `नमस्ते ${tenant.name}, ${bill.billing_month} के लिए आपका किराया *₹${formattedAmount}* है।\n\n` +
-      `*UPI ID:* ${owner.upi_id}\n\n` +
-      `Click below to view/pay:\n` +
-      upiLink;
+      `नमस्ते ${tenant.name}, ${bill.billing_month} के लिए आपका किराया *₹${formattedAmount}* है।${pdfLink}\n\n` +
+      `*UPI ID:* ${owner.upi_id}\n` +
+      `*Pay Now:* ${upiLink}`;
 
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`);
   };

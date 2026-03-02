@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Calculator } from "lucide-react";
-import { createBill } from "@/app/billing/actions";
+import { createBill, saveInvoiceUrl } from "@/app/billing/actions";
+import { pdf } from "@react-pdf/renderer";
 import { toast } from "sonner";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { InvoicePDF } from "@/components/billing/invoice-pdf";
@@ -74,9 +75,48 @@ export function NewBillModal({ tenants, owner }: { tenants: any[], owner: any })
 
   async function handleSubmit(formData: FormData) {
     try {
+      // 1. Create the bill record
       const bill = await createBill(formData);
-      setGeneratedBill(bill);
-      toast.success("Bill generated successfully!");
+
+      // 2. Generate PDF and upload in background
+      try {
+        if (!tenant) {
+          setGeneratedBill(bill);
+          toast.success("Bill generated! (Could not identify tenant for PDF upload)");
+          return;
+        }
+
+        const doc = <InvoicePDF bill={bill} tenant={tenant} owner={owner} />;
+        const blob = await pdf(doc).toBlob();
+        const file = new File([blob], `invoice-${bill.id}.pdf`, { type: 'application/pdf' });
+
+        // 3. Upload to Supabase Storage
+        const filePath = `${tenant.id}/${bill.id}.pdf`;
+        const { error: uploadError } = await supabase.storage
+          .from('invoices')
+          .upload(filePath, file, { upsert: true });
+
+        if (uploadError) {
+          console.error('PDF upload failed:', uploadError.message);
+          setGeneratedBill(bill);
+          toast.success("Bill generated! (PDF upload failed — you can still download it)");
+          return;
+        }
+
+        // 4. Get public URL and save to DB
+        const { data: { publicUrl } } = supabase.storage
+          .from('invoices')
+          .getPublicUrl(filePath);
+
+        await saveInvoiceUrl(bill.id, publicUrl);
+        setGeneratedBill({ ...bill, pdf_url: publicUrl });
+        toast.success("Bill generated and saved to cloud!");
+      } catch (uploadErr) {
+        // Bill was created but PDF upload failed — still show success
+        console.error('PDF upload failed:', uploadErr);
+        setGeneratedBill(bill);
+        toast.success("Bill generated! (PDF upload failed — you can still download it)");
+      }
     } catch (error: any) {
       toast.error(error.message);
     }
@@ -196,7 +236,7 @@ export function NewBillModal({ tenants, owner }: { tenants: any[], owner: any })
             <div className="flex flex-col gap-2">
               <PDFDownloadLink
                 document={<InvoicePDF bill={generatedBill} tenant={tenant} owner={owner} />}
-                fileName={`Invoice_${tenant.name}_${generatedBill.billing_month}.pdf`}
+                fileName={`Invoice_${tenant?.name ?? "Tenant"}_${generatedBill?.billing_month ?? "bill"}.pdf`}
               >
                 {({ loading }) => (
                   <Button className="w-full" variant="outline">

@@ -96,6 +96,10 @@ export function EditTenantModal({ tenant, onSaved }: { tenant: any; onSaved?: ()
             <Label>Total Members</Label>
             <Input name="occupancy_count" type="number" defaultValue={tenant.occupancy_count ?? 1} min={1} step="1" />
           </div>
+          <div className="space-y-2">
+            <Label>Opening Meter Reading</Label>
+            <Input name="initial_meter_reading" type="number" step="0.01" min={0} defaultValue={tenant.initial_meter_reading} />
+          </div>
           <div className="space-y-2 col-span-full">
             <Label>Emergency Contact</Label>
             <Input name="emergency_contact" defaultValue={tenant.emergency_contact} />

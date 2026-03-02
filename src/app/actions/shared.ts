@@ -21,17 +21,18 @@ export async function deleteEntity(table: string, id: string) {
   if (!ALLOWED_TABLES.includes(table as AllowedTable)) {
     return { error: 'Invalid table' }
   }
+  const validTable = table as AllowedTable
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
 
-  const config = OWNERSHIP_CONFIG[table as AllowedTable]
+  const config = OWNERSHIP_CONFIG[validTable]
 
   // Verify ownership before deleting
   if (config.ownerField) {
     const { data: record, error: fetchError } = await supabase
-      .from(table)
+      .from(validTable)
       .select(config.ownerField)
       .eq('id', id)
       .single()
@@ -42,7 +43,7 @@ export async function deleteEntity(table: string, id: string) {
     }
   } else if (config.join) {
     const { data: record, error: fetchError } = await supabase
-      .from(table)
+      .from(validTable)
       .select(`id, ${config.join}`)
       .eq('id', id)
       .single()
@@ -54,7 +55,7 @@ export async function deleteEntity(table: string, id: string) {
     }
   }
 
-  const { error } = await supabase.from(table).delete().eq('id', id)
+  const { error } = await supabase.from(validTable).delete().eq('id', id)
   if (error) return { error: error.message }
 
   revalidatePath('/')

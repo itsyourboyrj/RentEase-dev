@@ -1,12 +1,6 @@
 "use client";
 
-import { Document, Page, Text, View, StyleSheet, Image, Link, Font } from '@react-pdf/renderer';
-
-// Register Noto Sans Devanagari for Hindi text
-Font.register({
-  family: 'NotoSansDevanagari',
-  src: 'https://fonts.gstatic.com/s/notosansdevanagari/v26/TuGOUVpzXI5FBtUq5a8bjKYTZjtRU6Sgv3NaV_SNmI0b6w.ttf',
-});
+import { Document, Page, Text, View, StyleSheet, Image, Link } from '@react-pdf/renderer';
 
 // Standard Font Setup
 const styles = StyleSheet.create({
@@ -285,8 +279,8 @@ export function InvoicePDF({ bill, tenant, owner, logoUrl }: any) {
 
             {upiUrl ? (
               <View style={{ marginTop: 20 }}>
-                <Text style={{ fontSize: 10, color: '#6B7280', marginBottom: 6, fontFamily: 'NotoSansDevanagari' }}>
-                  यहाँ भुगतान करें
+                <Text style={{ fontSize: 9, color: '#6B7280', marginBottom: 6 }}>
+                  Pay Here / Click below to pay
                 </Text>
                 <Link src={upiUrl} style={[styles.payButton, { marginTop: 0, alignSelf: 'flex-start' }]}>
                   <Text style={styles.payButtonText}>

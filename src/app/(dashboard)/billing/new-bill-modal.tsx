@@ -118,13 +118,12 @@ export function NewBillModal({ tenants, owner }: { tenants: any[], owner: any })
 
         const doc = <InvoicePDF bill={bill} tenant={tenant} owner={owner} />;
         const blob = await pdf(doc).toBlob();
-        const file = new File([blob], `invoice-${bill.id}.pdf`, { type: 'application/pdf' });
 
         // 3. Upload to Supabase Storage
         const filePath = `${tenant.id}/${bill.id}.pdf`;
         const { error: uploadError } = await supabase.storage
           .from('invoices')
-          .upload(filePath, file, { upsert: true });
+          .upload(filePath, blob, { contentType: 'application/pdf', upsert: true });
 
         if (uploadError) {
           console.error('PDF upload failed:', uploadError.message);

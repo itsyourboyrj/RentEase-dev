@@ -12,6 +12,7 @@ export async function createBill(formData: FormData) {
   const billing_month = formData.get('billing_month') as string
   const billing_start_date = formData.get('billing_start_date') as string
   const billing_end_date = formData.get('billing_end_date') as string
+  const current_reading_date = formData.get('current_reading_date') as string
   const previous_reading = parseFloat(formData.get('previous_reading') as string)
   const current_reading = parseFloat(formData.get('current_reading') as string)
   const electricity_amount = parseFloat(formData.get('electricity_amount') as string)
@@ -23,6 +24,7 @@ export async function createBill(formData: FormData) {
     billing_month,
     billing_start_date,
     billing_end_date,
+    current_reading_date,
     previous_reading,
     current_reading,
     electricity_amount,

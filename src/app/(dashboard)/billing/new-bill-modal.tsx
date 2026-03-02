@@ -14,6 +14,13 @@ import { toast } from "sonner";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { InvoicePDF } from "@/components/billing/invoice-pdf";
 
+function getLocalDateString(date = new Date()) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 export function NewBillModal({ tenants, owner }: { tenants: any[], owner: any }) {
   const [open, setOpen] = useState(false);
   const [selectedTenantId, setSelectedTenantId] = useState("");
@@ -165,7 +172,7 @@ export function NewBillModal({ tenants, owner }: { tenants: any[], owner: any })
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Billing Month</Label>
-                <Input name="billing_month" type="month" defaultValue={new Date().toISOString().slice(0, 7)} required />
+                <Input name="billing_month" type="month" defaultValue={getLocalDateString().slice(0, 7)} required />
               </div>
               <div className="space-y-2">
                 <Label>Rent (₹)</Label>
@@ -182,6 +189,16 @@ export function NewBillModal({ tenants, owner }: { tenants: any[], owner: any })
                 <Label>Period End Date</Label>
                 <Input name="billing_end_date" type="date" required />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Reading Date*</Label>
+              <Input
+                name="current_reading_date"
+                type="date"
+                defaultValue={getLocalDateString()}
+                required
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4 bg-primary/5 p-4 rounded-xl border border-primary/10">

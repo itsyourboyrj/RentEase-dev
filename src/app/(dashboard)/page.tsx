@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { createClient } from "@/lib/supabase/server";
 import { Building2, DoorOpen, Users, IndianRupee, AlertCircle, UserCircle } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -29,10 +31,10 @@ export default async function DashboardPage() {
 
   // 1. Fetch Owner Profile & Counts simultaneously for speed
   const [ownerRes, buildingsCountRes, flatsCountRes, activeTenantsRes] = await Promise.all([
-    supabase.from('owners').select('*').eq('id', user.id).single(),
-    supabase.from("buildings").select("*", { count: 'exact', head: true }),
-    supabase.from("flats").select("*", { count: 'exact', head: true }),
-    supabase.from("tenants").select("*", { count: 'exact', head: true }).eq("is_active", true),
+    supabase.from('owners').select('full_name, phone, upi_id, profile_url').eq('id', user.id).single(),
+    supabase.from("buildings").select("id", { count: 'exact', head: true }),
+    supabase.from("flats").select("id", { count: 'exact', head: true }),
+    supabase.from("tenants").select("id", { count: 'exact', head: true }).eq("is_active", true),
   ]);
 
   const owner = ownerRes.data;

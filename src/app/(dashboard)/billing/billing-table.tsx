@@ -101,16 +101,19 @@ export function BillingTable({ bills, owner, buildings }: any) {
     // Normalize phone: digits only, no leading +
     const phone = tenant.phone.replace(/\D/g, '').replace(/^\+/, '');
 
+    const billingMonth = bill.billing_month ?? '';
     const formattedAmount = bill.total_amount.toLocaleString('en-IN');
-    const upiLink = `upi://pay?pa=${encodeURIComponent(owner.upi_id)}&pn=${encodeURIComponent(owner.full_name ?? '')}&am=${encodeURIComponent(bill.total_amount)}&cu=INR`;
-    const pdfLink = bill.pdf_url ? `\n\n📄 View Invoice: ${bill.pdf_url}` : "";
+    const upiLink = `upi://pay?pa=${encodeURIComponent(owner.upi_id)}&pn=${encodeURIComponent(owner.full_name ?? '')}&am=${encodeURIComponent(bill.total_amount)}&cu=INR&tn=${encodeURIComponent('Rent ' + billingMonth)}`;
+    const pdfLink = bill.pdf_url
+      ? `\n\n🔗 *See your bill details here / अपने बिल का विवरण यहाँ देखें:*\n${bill.pdf_url}`
+      : "";
 
     const message =
       `*Rent Invoice / किराया चालान*\n\n` +
-      `Hi ${tenant.name}, your rent for ${bill.billing_month} is *₹${formattedAmount}*.\n` +
-      `नमस्ते ${tenant.name}, ${bill.billing_month} के लिए आपका किराया *₹${formattedAmount}* है।${pdfLink}\n\n` +
-      `*UPI ID:* ${owner.upi_id}\n` +
-      `*Pay Now:* ${upiLink}`;
+      `Hi ${tenant.name}, your rent for ${billingMonth} is ready.\n` +
+      `नमस्ते ${tenant.name}, ${billingMonth} के लिए आपका किराया तैयार है।${pdfLink}\n\n` +
+      `*Pay Now / अभी भुगतान करें:* ₹${formattedAmount}\n` +
+      `${upiLink}`;
 
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`);
   };

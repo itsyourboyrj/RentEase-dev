@@ -123,6 +123,8 @@ export async function updateTenant(tenantId: string, formData: FormData) {
 
   revalidatePath(`/tenants/${tenantId}`)
   revalidatePath('/tenants')
+  revalidatePath('/flats')
+  revalidatePath('/')
 }
 
 export async function checkoutTenant(tenantId: string, flatId: string, finalReading: number) {
@@ -160,7 +162,9 @@ export async function checkoutTenant(tenantId: string, flatId: string, finalRead
 
   if (fError) return { error: "Failed to update flat status: " + fError.message }
 
+  revalidatePath(`/tenants/${tenantId}`)
   revalidatePath('/tenants')
   revalidatePath('/flats')
+  revalidatePath('/')
   return { success: true }
 }

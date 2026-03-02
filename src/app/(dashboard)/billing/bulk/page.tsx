@@ -10,9 +10,17 @@ import { bulkCreateBills } from "@/app/billing/actions";
 import { toast } from "sonner";
 import Link from "next/link";
 
+function getLocalDateString(date = new Date()) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 export default function BulkBillingPage() {
   const [tenants, setTenants] = useState<any[]>([]);
   const [readings, setReadings] = useState<Record<string, number>>({});
+  const [readingDates, setReadingDates] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const supabase = createClient();
@@ -57,6 +65,10 @@ export default function BulkBillingPage() {
     setReadings(prev => ({ ...prev, [id]: Number.isFinite(parsed) ? parsed : 0 }));
   };
 
+  const handleDateChange = (id: string, val: string) => {
+    setReadingDates(prev => ({ ...prev, [id]: val }));
+  };
+
   const readyCount = tenants.filter(t => readings[t.id] != null && readings[t.id] > t.last_reading).length;
 
   const handleBulkGenerate = async () => {
@@ -70,6 +82,7 @@ export default function BulkBillingPage() {
           billing_month: (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; })(),
           previous_reading: t.last_reading,
           current_reading: readings[t.id],
+          current_reading_date: readingDates[t.id] || getLocalDateString(),
           electricity_amount: elecAmount,
           rent_amount: t.flats?.rent_amount || 0,
           total_amount: elecAmount + (t.flats?.rent_amount || 0),
@@ -139,6 +152,15 @@ export default function BulkBillingPage() {
                     placeholder="0.00"
                     onChange={(e) => handleReadingChange(t.id, e.target.value)}
                     className="h-10 w-32 border-none bg-primary/5 text-lg font-black focus-visible:ring-primary"
+                  />
+                </div>
+                <div className="px-2 border-l">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase">Reading Date</p>
+                  <Input
+                    type="date"
+                    defaultValue={getLocalDateString()}
+                    onChange={(e) => handleDateChange(t.id, e.target.value)}
+                    className="h-10 w-36 border-none bg-primary/5 font-bold focus-visible:ring-primary"
                   />
                 </div>
               </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image, Link } from '@react-pdf/renderer';
 
 // Standard Font Setup
 const styles = StyleSheet.create({
@@ -175,6 +175,17 @@ export function InvoicePDF({ bill, tenant, owner, logoUrl }: any) {
   const previousReading = Number(bill.previous_reading) || 0;
   const units = currentReading - previousReading;
 
+  const billingMonth = bill.billing_month ?? '';
+  const safeAmount = (Number(bill.total_amount) || 0).toFixed(2);
+
+  const upiUrl = owner?.upi_id
+    ? `upi://pay?pa=${encodeURIComponent(owner.upi_id)}&pn=${encodeURIComponent(owner?.full_name ?? '')}&am=${encodeURIComponent(safeAmount)}&cu=INR&tn=${encodeURIComponent('Rent ' + billingMonth)}`
+    : '';
+
+  const readingDateStr = bill.current_reading_date
+    ? new Date(bill.current_reading_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })
+    : '';
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -219,7 +230,12 @@ export function InvoicePDF({ bill, tenant, owner, logoUrl }: any) {
           {/* Electricity Row */}
           <View style={styles.tableRow}>
             <Text style={[styles.col1, styles.rowValue, { fontWeight: 'bold' }]}>ELECTRICITY BILL</Text>
-            <Text style={[styles.col2, styles.rowValue]}>{bill.current_reading}</Text>
+            <Text style={[styles.col2, styles.rowValue]}>
+              {bill.current_reading}
+              {readingDateStr ? (
+                <Text style={{ fontSize: 7, color: '#6B7280' }}>{"\n"}({readingDateStr})</Text>
+              ) : null}
+            </Text>
             <Text style={[styles.col3, styles.rowValue]}>{bill.previous_reading}</Text>
             <Text style={[styles.col4, styles.rowValue]}>{units}</Text>
             <Text style={[styles.col5, styles.rowValue]}>{tenant?.flats?.buildings?.electricity_rate}</Text>
@@ -253,11 +269,19 @@ export function InvoicePDF({ bill, tenant, owner, logoUrl }: any) {
               <Image src={owner.upi_qr_url} style={styles.qrCode} />
             )}
 
-            <View style={styles.payButton}>
-              <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold', textAlign: 'center' }}>
-                PAY TO: {owner?.upi_id || 'N/A'}
-              </Text>
-            </View>
+            {upiUrl ? (
+              <Link src={upiUrl} style={styles.payButton}>
+                <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold', textAlign: 'center' }}>
+                  PAY NOW / अभी भुगतान करें
+                </Text>
+              </Link>
+            ) : (
+              <View style={styles.payButton}>
+                <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold', textAlign: 'center' }}>
+                  PAY TO: {owner?.upi_id || 'N/A'}
+                </Text>
+              </View>
+            )}
           </View>
 
           <View style={styles.signatureSection}>

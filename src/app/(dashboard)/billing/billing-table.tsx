@@ -6,13 +6,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MessageCircle, Trash2, MoreVertical } from "lucide-react";
-import { deleteBills, updateBillStatus } from "@/app/billing/actions";
+import { MessageCircle, Trash2, MoreVertical, Loader2 } from "lucide-react";
+import { deleteBills, updateBillStatus, saveInvoiceUrl } from "@/app/billing/actions";
 import { toast } from "sonner";
 import { BillViewButton } from "@/components/billing/bill-view-button";
 import { RecordPaymentModal } from "@/components/billing/record-payment-modal";
 import { DataFilter } from "@/components/shared/data-filter";
 import { DeleteButton } from "@/components/shared/delete-button";
+import { InvoicePDF } from "@/components/billing/invoice-pdf";
+import { pdf } from "@react-pdf/renderer";
+import { createClient } from "@/lib/supabase/client";
 
 export function BillingTable({ bills, owner, buildings }: any) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -20,6 +23,7 @@ export function BillingTable({ bills, owner, buildings }: any) {
   const [buildingFilter, setBuildingFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("Due");
   const [sortBy, setSortBy] = useState("newest");
+  const [sendingId, setSendingId] = useState<string | null>(null);
 
   // Clear selection when filters or bills change
   useEffect(() => {
@@ -82,7 +86,7 @@ export function BillingTable({ bills, owner, buildings }: any) {
     }
   }
 
-  const sendWhatsAppInvoice = (bill: any) => {
+  const sendWhatsAppInvoice = async (bill: any) => {
     const tenant = bill.tenants;
 
     if (!tenant?.phone) {
@@ -98,14 +102,43 @@ export function BillingTable({ bills, owner, buildings }: any) {
       return;
     }
 
-    // Normalize phone: digits only, no leading +
-    const phone = tenant.phone.replace(/\D/g, '').replace(/^\+/, '');
+    setSendingId(bill.id);
 
+    let pdfUrl = bill.pdf_url || '';
+
+    // Generate & upload PDF on-the-fly if no pdf_url exists
+    if (!pdfUrl) {
+      try {
+        toast.info("Generating invoice PDF...");
+        const blob = await pdf(<InvoicePDF bill={bill} tenant={tenant} owner={owner} />).toBlob();
+        const supabase = createClient();
+        const filePath = `${tenant.id}/${bill.id}.pdf`;
+        const { error: uploadError } = await supabase.storage
+          .from("invoices")
+          .upload(filePath, blob, { contentType: "application/pdf", upsert: true });
+
+        if (!uploadError) {
+          const { data: publicUrlData } = supabase.storage.from("invoices").getPublicUrl(filePath);
+          if (publicUrlData?.publicUrl) {
+            pdfUrl = publicUrlData.publicUrl;
+            // Save URL to DB for future use
+            await saveInvoiceUrl(bill.id, pdfUrl).catch(() => {});
+            // Update local reference so next click doesn't regenerate
+            bill.pdf_url = pdfUrl;
+          }
+        }
+      } catch (err) {
+        console.error("PDF generation failed:", err);
+        // Continue without PDF link
+      }
+    }
+
+    const phone = tenant.phone.replace(/\D/g, '').replace(/^\+/, '');
     const billingMonth = bill.billing_month ?? '';
     const formattedAmount = bill.total_amount.toLocaleString('en-IN');
     const upiLink = `upi://pay?pa=${encodeURIComponent(owner.upi_id)}&pn=${encodeURIComponent(owner.full_name ?? '')}&am=${encodeURIComponent(bill.total_amount)}&cu=INR&tn=${encodeURIComponent('Rent ' + billingMonth)}`;
-    const pdfLink = bill.pdf_url
-      ? `\n\n🔗 *See your bill details here / अपने बिल का विवरण यहाँ देखें:*\n${bill.pdf_url}`
+    const pdfLink = pdfUrl
+      ? `\n\n📄 *See your bill details here / अपने बिल का विवरण यहाँ देखें:*\n${pdfUrl}`
       : "";
 
     const message =
@@ -116,6 +149,7 @@ export function BillingTable({ bills, owner, buildings }: any) {
       `${upiLink}`;
 
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`);
+    setSendingId(null);
   };
 
   return (
@@ -199,10 +233,10 @@ export function BillingTable({ bills, owner, buildings }: any) {
                       size="icon"
                       className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
                       aria-label="Send WhatsApp invoice"
-                      disabled={!Number.isFinite(bill.total_amount)}
+                      disabled={!Number.isFinite(bill.total_amount) || sendingId === bill.id}
                       onClick={() => sendWhatsAppInvoice(bill)}
                     >
-                      <MessageCircle className="h-4 w-4" />
+                      {sendingId === bill.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
                     </Button>
                   </div>
                 </TableCell>

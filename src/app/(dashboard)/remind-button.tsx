@@ -5,12 +5,12 @@ import { toast } from "sonner";
 
 interface Bill {
   tenants?: { name?: string; phone?: string } | null;
-  billing_month?: string;
-  remaining_balance?: number;
-  total_amount?: number;
+  billing_month?: string | null;
+  remaining_balance?: number | null;
+  total_amount?: number | null;
 }
 
-export function RemindButton({ bill, ownerUpiId }: { bill: Bill; ownerUpiId?: string }) {
+export function RemindButton({ bill, ownerUpiId }: { bill: Bill; ownerUpiId?: string | null }) {
   const phone = (bill.tenants?.phone ?? '').replace(/\D/g, '');
 
   const handleRemind = () => {

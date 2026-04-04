@@ -14,9 +14,10 @@ import Link from "next/link";
 interface OverdueBill {
   id: string;
   total_amount: number;
+  paid_amount: number | null;
   remaining_balance: number | null;
   billing_month: string | null;
-  is_paid: boolean | null;
+  status: string | null;
   tenants: {
     name: string;
     phone: string;

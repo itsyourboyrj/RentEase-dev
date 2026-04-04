@@ -41,6 +41,9 @@ export function EditTenantModal({ tenant, onSaved }: { tenant: any; onSaved?: ()
           <DialogTitle>Edit Resident Profile: {tenant.name}</DialogTitle>
         </DialogHeader>
         <form action={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+          {/* Hidden flat ID for rent sync */}
+          <input type="hidden" name="flat_id" value={tenant.flat_id ?? ""} />
+
           <div className="space-y-2">
             <Label>Full Name</Label>
             <Input name="name" defaultValue={tenant.name} required />
@@ -48,6 +51,16 @@ export function EditTenantModal({ tenant, onSaved }: { tenant: any; onSaved?: ()
           <div className="space-y-2">
             <Label>Phone Number</Label>
             <Input name="phone" defaultValue={tenant.phone} required />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-primary font-bold">Monthly Rent (₹)</Label>
+            <Input
+              name="rent_amount"
+              type="number"
+              defaultValue={tenant.flats?.rent_amount}
+              className="border-primary/20 bg-primary/5 font-black"
+              required
+            />
           </div>
           <div className="space-y-2">
             <Label>Email</Label>

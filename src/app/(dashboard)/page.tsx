@@ -72,15 +72,27 @@ export default async function DashboardPage() {
   // --- SHOW PROFESSIONAL DASHBOARD FOR REGULAR USERS ---
   const { data: unpaidBills } = await supabase
     .from("bills")
-    .select("total_amount")
-    .eq("is_paid", false);
+    .select("remaining_balance")
+    .gt("remaining_balance", 0);
 
-  const totalDues = unpaidBills?.reduce((sum, bill) => sum + Number(bill.total_amount), 0) || 0;
+  const totalDues = unpaidBills?.reduce((sum, bill) => sum + Number(bill.remaining_balance ?? 0), 0) || 0;
 
   const { data: overdueBills } = await supabase
     .from("bills")
-    .select(`*, tenants (name, phone, flats (flat_code))`)
-    .eq("is_paid", false)
+    .select(`
+      id,
+      billing_month,
+      total_amount,
+      paid_amount,
+      remaining_balance,
+      status,
+      tenants (
+        name,
+        phone,
+        flats (flat_code)
+      )
+    `)
+    .gt("remaining_balance", 0)
     .order("created_at", { ascending: false })
     .limit(5);
 
@@ -129,7 +141,7 @@ export default async function DashboardPage() {
                     <TableRow key={bill.id} className="border-white/40 hover:bg-white/20">
                       <TableCell className="pl-6 font-bold">{bill.tenants?.name ?? "Unknown tenant"}</TableCell>
                       <TableCell className="text-xs font-black">{bill.tenants?.flats?.flat_code ?? "No flat"}</TableCell>
-                      <TableCell className="text-destructive font-black">{`\u20B9${bill.remaining_balance ?? bill.total_amount}`}</TableCell>
+                      <TableCell className="text-destructive font-black">₹{Number(bill.remaining_balance ?? bill.total_amount).toLocaleString('en-IN')}</TableCell>
                       <TableCell className="text-right pr-6">
                         <RemindButton bill={bill} ownerUpiId={owner?.upi_id} />
                       </TableCell>

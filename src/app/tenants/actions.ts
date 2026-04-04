@@ -92,6 +92,9 @@ export async function updateTenant(tenantId: string, formData: FormData) {
   const rawMeterReading = formData.get('initial_meter_reading') as string
   const parsedMeterReading = rawMeterReading ? parseFloat(rawMeterReading) : undefined
 
+  const rent_amount = parseFloat(formData.get('rent_amount') as string)
+  const flat_id = formData.get('flat_id') as string
+
   const updates: Record<string, unknown> = {
     name: formData.get('name') as string,
     phone: formData.get('phone') as string,
@@ -112,6 +115,7 @@ export async function updateTenant(tenantId: string, formData: FormData) {
     updates.occupancy_count = parsedOccupancy
   }
 
+  // 1. Update the Tenant Record
   const { data: updatedRows, error } = await supabase
     .from('tenants')
     .update(updates)
@@ -122,6 +126,14 @@ export async function updateTenant(tenantId: string, formData: FormData) {
   if (error) throw new Error(error.message)
   if (!updatedRows || updatedRows.length === 0) {
     throw new Error('Tenant not found or not owned by user')
+  }
+
+  // 2. SYNC: Update the Flat's Rent Amount if provided
+  if (flat_id && Number.isFinite(rent_amount) && rent_amount > 0) {
+    await supabase
+      .from('flats')
+      .update({ rent_amount })
+      .eq('id', flat_id)
   }
 
   revalidatePath(`/tenants/${tenantId}`)

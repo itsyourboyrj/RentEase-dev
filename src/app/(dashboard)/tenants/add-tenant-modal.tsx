@@ -57,12 +57,16 @@ export function AddTenantModal({ buildings, vacantFlats, onTenantAdded }: { buil
 
     setLoading(true);
     try {
-      await createTenant(formData);
-      toast.success("Tenant onboarded successfully!");
-      setOpen(false);
-      onTenantAdded?.();
+      const res = await createTenant(formData);
+      if (res?.success) {
+        toast.success("Tenant Added!");
+        setOpen(false);
+        onTenantAdded?.();
+      } else {
+        toast.error("Failed to add tenant");
+      }
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error("Failed to add tenant");
     } finally {
       setLoading(false);
     }

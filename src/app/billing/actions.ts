@@ -17,9 +17,28 @@ export async function createBill(formData: FormData) {
   const current_reading = parseFloat(formData.get('current_reading') as string)
   const electricity_amount = parseFloat(formData.get('electricity_amount') as string)
   const rent_amount = parseFloat(formData.get('rent_amount') as string)
-  const total_amount = parseFloat(formData.get('total_amount') as string)
 
-  const { data, error } = await supabase.from('bills').insert({
+  // 1. Fetch Tenant's current Arrears and Advance
+  const { data: tenant, error: tenantError } = await supabase
+    .from('tenants')
+    .select('advance_balance, total_arrears_balance')
+    .eq('id', tenant_id)
+    .single()
+
+  if (tenantError || !tenant) {
+    throw new Error(`Failed to fetch tenant: ${tenantError?.message ?? 'Tenant not found'}`)
+  }
+
+  const arrears = Number(tenant.total_arrears_balance || 0)
+  const advance = Number(tenant.advance_balance || 0)
+
+  // 2. Calculate Final Amount
+  // Total = (Rent + Elec + Past Arrears) - Existing Advance
+  const subTotal = rent_amount + electricity_amount + arrears
+  const advanceToApply = Math.min(subTotal, advance)
+  const finalTotal = subTotal - advanceToApply
+
+  const { data: bill, error } = await supabase.from('bills').insert({
     tenant_id,
     billing_month,
     billing_start_date,
@@ -29,14 +48,32 @@ export async function createBill(formData: FormData) {
     current_reading,
     electricity_amount,
     rent_amount,
-    total_amount,
-    is_paid: false
+    arrears_included: arrears,
+    advance_applied: advanceToApply,
+    total_amount: finalTotal,
+    remaining_balance: finalTotal,
+    status: finalTotal === 0 ? 'Paid' : 'Due',
+    is_paid: finalTotal === 0
   }).select().single()
 
   if (error) throw new Error(error.message)
 
+  // 3. Update Tenant Record: Clear used advance/arrears
+  const { error: tenantUpdateError } = await supabase.from('tenants').update({
+    advance_balance: advance - advanceToApply,
+    total_arrears_balance: 0
+  }).eq('id', tenant_id)
+
+  if (tenantUpdateError) {
+    console.error(`Failed to update tenant ${tenant_id} after bill ${bill.id}: ${tenantUpdateError.message}`, { tenant_id, advance, advanceToApply })
+    // Rollback: delete the created bill to avoid inconsistency
+    await supabase.from('bills').delete().eq('id', bill.id)
+    throw new Error(`Bill created but tenant update failed: ${tenantUpdateError.message}`)
+  }
+
   revalidatePath('/billing')
-  return data // Return the bill data for PDF generation
+  revalidatePath('/')
+  return bill
 }
 
 export async function markAsPaid(billId: string) {
@@ -48,6 +85,7 @@ export async function markAsPaid(billId: string) {
 
   if (error) throw new Error(error.message)
   revalidatePath('/billing')
+  revalidatePath('/')
 }
 
 export async function updateBillStatus(billId: string, newStatus: string) {
@@ -73,32 +111,64 @@ export async function updateBillStatus(billId: string, newStatus: string) {
   revalidatePath('/')
 }
 
-export async function recordPayment(billId: string, amount: number) {
+export async function recordPayment(billId: string, amountReceived: number) {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
-  if (amount < 0) throw new Error('Payment amount cannot be negative')
-  if (amount === 0) throw new Error('Payment amount must be greater than zero')
+  if (amountReceived < 0) throw new Error('Payment amount cannot be negative')
+  if (amountReceived === 0) throw new Error('Payment amount must be greater than zero')
 
-  const { data: bill, error: fetchError } = await supabase.from('bills').select('total_amount').eq('id', billId).single()
+  const { data: bill, error: fetchError } = await supabase.from('bills').select('*').eq('id', billId).single()
   if (fetchError) throw new Error(`Failed to fetch bill: ${fetchError.message}`)
   if (!bill) throw new Error('Bill not found')
 
-  const newStatus = amount >= bill.total_amount ? 'Paid' : 'Partial'
+  const currentRemaining = Number(bill.remaining_balance ?? bill.total_amount)
+  const newRemaining = Math.max(0, currentRemaining - amountReceived)
+  const newPaidAmount = (Number(bill.paid_amount) || 0) + amountReceived
+  const newStatus = newRemaining === 0 ? 'Paid' : 'Partial'
 
   const { error } = await supabase
     .from('bills')
     .update({
-      paid_amount: amount,
+      paid_amount: newPaidAmount,
+      remaining_balance: newRemaining,
       status: newStatus,
       is_paid: newStatus === 'Paid'
     })
     .eq('id', billId)
 
   if (error) throw new Error(error.message)
+
+  // If there was an overpayment, add to tenant advance
+  if (amountReceived > currentRemaining) {
+    const overpayment = amountReceived - currentRemaining
+    const { data: tenant, error: tenantFetchError } = await supabase
+      .from('tenants')
+      .select('advance_balance')
+      .eq('id', bill.tenant_id)
+      .single()
+
+    if (tenantFetchError || !tenant) {
+      console.error(`Failed to fetch tenant ${bill.tenant_id} for overpayment of ${overpayment}:`, tenantFetchError?.message)
+      throw new Error(`Payment recorded but failed to apply overpayment to tenant advance: ${tenantFetchError?.message ?? 'Tenant not found'}`)
+    }
+
+    const currentAdvance = Number(tenant.advance_balance || 0)
+    const { error: advanceUpdateError } = await supabase
+      .from('tenants')
+      .update({ advance_balance: currentAdvance + overpayment })
+      .eq('id', bill.tenant_id)
+
+    if (advanceUpdateError) {
+      console.error(`Failed to update advance for tenant ${bill.tenant_id}, overpayment: ${overpayment}:`, advanceUpdateError.message)
+      throw new Error(`Payment recorded but failed to update tenant advance: ${advanceUpdateError.message}`)
+    }
+  }
+
   revalidatePath('/billing')
+  revalidatePath('/')
 }
 
 export async function bulkCreateBills(billsData: any[]) {

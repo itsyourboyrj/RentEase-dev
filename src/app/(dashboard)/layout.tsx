@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { Loader2 } from "lucide-react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { LanguageProvider } from "@/lib/language-context";
 import Link from "next/link";
@@ -22,7 +24,13 @@ export default function DashboardLayout({
           </header>
 
           <main className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-12 relative z-10 pb-14">
-            {children}
+            <Suspense fallback={
+              <div className="h-full w-full flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary opacity-20" />
+              </div>
+            }>
+              {children}
+            </Suspense>
           </main>
         </div>
       </div>

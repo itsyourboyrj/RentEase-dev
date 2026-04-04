@@ -7,12 +7,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { BoutiqueEmptyState } from "@/components/shared/empty-state";
 import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
+import { RemindButton } from "./remind-button";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
 interface OverdueBill {
   id: string;
   total_amount: number;
+  remaining_balance: number | null;
+  billing_month: string | null;
   is_paid: boolean | null;
   tenants: {
     name: string;
@@ -78,6 +81,7 @@ export default async function DashboardPage() {
     .from("bills")
     .select(`*, tenants (name, phone, flats (flat_code))`)
     .eq("is_paid", false)
+    .order("created_at", { ascending: false })
     .limit(5);
 
   return (
@@ -125,11 +129,9 @@ export default async function DashboardPage() {
                     <TableRow key={bill.id} className="border-white/40 hover:bg-white/20">
                       <TableCell className="pl-6 font-bold">{bill.tenants?.name ?? "Unknown tenant"}</TableCell>
                       <TableCell className="text-xs font-black">{bill.tenants?.flats?.flat_code ?? "No flat"}</TableCell>
-                      <TableCell className="text-destructive font-black">{`\u20B9${bill.total_amount}`}</TableCell>
+                      <TableCell className="text-destructive font-black">{`\u20B9${bill.remaining_balance ?? bill.total_amount}`}</TableCell>
                       <TableCell className="text-right pr-6">
-                        <Button variant="ghost" size="sm" className="rounded-xl font-bold text-primary hover:bg-primary/10" asChild>
-                          <Link href="/billing">Remind</Link>
-                        </Button>
+                        <RemindButton bill={bill} ownerUpiId={owner?.upi_id} />
                       </TableCell>
                     </TableRow>
                   ))

@@ -175,6 +175,21 @@ export default function LoginPage() {
               </div>
             )}
 
+            {view === "login" && (
+              <div className="flex items-center space-x-2 px-1">
+                <input
+                  type="checkbox"
+                  id="remember"
+                  name="rememberMe"
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                  defaultChecked
+                />
+                <label htmlFor="remember" className="text-xs font-bold text-slate-500 cursor-pointer">
+                  Keep me logged in
+                </label>
+              </div>
+            )}
+
             {view === "otp-verify" && (
               <div className="space-y-1.5 text-center">
                 <Label className="text-xs uppercase font-bold tracking-widest text-slate-500">

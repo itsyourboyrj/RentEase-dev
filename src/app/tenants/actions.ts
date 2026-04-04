@@ -72,9 +72,12 @@ export async function createTenant(formData: FormData) {
 
   if (flatError) throw new Error(flatError.message)
 
+  // CRITICAL: This tells the browser to fetch fresh data for these paths immediately
   revalidatePath('/tenants')
   revalidatePath('/flats')
   revalidatePath('/')
+
+  return { success: true } // Return success so the modal can close
 }
 
 export async function updateTenant(tenantId: string, formData: FormData) {

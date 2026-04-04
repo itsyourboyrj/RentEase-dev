@@ -30,4 +30,5 @@ export async function createBuilding(formData: FormData) {
 
   // Refresh the page data
   revalidatePath('/buildings')
+  revalidatePath('/')
 }

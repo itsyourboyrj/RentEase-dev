@@ -258,9 +258,27 @@ export function InvoicePDF({ bill, tenant, owner, logoUrl }: any) {
             <Text style={[styles.col7, styles.rowValue, { fontWeight: 'bold' }]}>₹{(bill.rent_amount ?? 0).toLocaleString()}</Text>
           </View>
 
+          {/* Arrears Row */}
+          {(bill.arrears_included ?? 0) > 0 && (
+            <View style={styles.tableRow}>
+              <Text style={[styles.col1, styles.rowValue, { fontWeight: 'bold' }]}>Arrears (Previous Dues)</Text>
+              <Text style={[{ width: '67%', textAlign: 'center', color: '#D1D5DB' }]}>-</Text>
+              <Text style={[styles.col7, styles.rowValue, { fontWeight: 'bold' }]}>₹{(bill.arrears_included ?? 0).toLocaleString()}</Text>
+            </View>
+          )}
+
+          {/* Advance Adjustment Row */}
+          {(bill.advance_applied ?? 0) > 0 && (
+            <View style={styles.tableRow}>
+              <Text style={[styles.col1, styles.rowValue, { fontWeight: 'bold' }]}>Advance Adjustment</Text>
+              <Text style={[{ width: '67%', textAlign: 'center', color: '#D1D5DB' }]}>-</Text>
+              <Text style={[styles.col7, styles.rowValue, { fontWeight: 'bold', color: '#059669' }]}>-₹{(bill.advance_applied ?? 0).toLocaleString()}</Text>
+            </View>
+          )}
+
           {/* Total Row */}
           <View style={styles.tableRowLast}>
-            <Text style={[styles.col1, { fontSize: 11, fontWeight: 'bold', color: '#111827' }]}>TOTAL</Text>
+            <Text style={[styles.col1, { fontSize: 11, fontWeight: 'bold', color: '#111827' }]}>FINAL PAYABLE</Text>
             <View style={{ width: '70%' }} />
             <Text style={[styles.col7, { fontSize: 12, fontWeight: 'bold', color: '#4F46E5' }]}>₹{(bill.total_amount ?? 0).toLocaleString()}</Text>
           </View>

@@ -15,6 +15,10 @@ export interface Database {
           full_name: string | null
           phone: string | null
           email: string | null
+          profile_url: string | null
+          upi_id: string | null
+          upi_qr_url: string | null
+          preferred_lang: string
           created_at: string
         }
         Insert: {
@@ -22,6 +26,10 @@ export interface Database {
           full_name?: string | null
           phone?: string | null
           email?: string | null
+          profile_url?: string | null
+          upi_id?: string | null
+          upi_qr_url?: string | null
+          preferred_lang?: string
           created_at?: string
         }
         Update: {
@@ -29,6 +37,10 @@ export interface Database {
           full_name?: string | null
           phone?: string | null
           email?: string | null
+          profile_url?: string | null
+          upi_id?: string | null
+          upi_qr_url?: string | null
+          preferred_lang?: string
           created_at?: string
         }
       }
@@ -66,6 +78,7 @@ export interface Database {
           floor: number | null
           rent_amount: number
           is_occupied: boolean
+          status: string
           created_at: string
         }
         Insert: {
@@ -75,6 +88,7 @@ export interface Database {
           floor?: number | null
           rent_amount: number
           is_occupied?: boolean
+          status?: string
           created_at?: string
         }
         Update: {
@@ -84,6 +98,7 @@ export interface Database {
           floor?: number | null
           rent_amount?: number
           is_occupied?: boolean
+          status?: string
           created_at?: string
         }
       }
@@ -99,10 +114,20 @@ export interface Database {
           checkout_date: string | null
           security_deposit: number | null
           meter_number: string | null
+          aadhar_number: string | null
+          gender: string | null
+          marital_status: string | null
+          employment_status: string | null
+          occupancy_count: number
+          initial_meter_reading: number
+          final_meter_reading: number
+          advance_balance: number
+          total_arrears_balance: number
           is_active: boolean
+          profile_url: string | null
+          address: string | null
           created_at: string
           emergency_contact: string | null
-          address: string | null
         }
         Insert: {
           id?: string
@@ -115,10 +140,20 @@ export interface Database {
           checkout_date?: string | null
           security_deposit?: number | null
           meter_number?: string | null
+          aadhar_number?: string | null
+          gender?: string | null
+          marital_status?: string | null
+          employment_status?: string | null
+          occupancy_count?: number
+          initial_meter_reading?: number
+          final_meter_reading?: number
+          advance_balance?: number
+          total_arrears_balance?: number
           is_active?: boolean
+          profile_url?: string | null
+          address?: string | null
           created_at?: string
           emergency_contact?: string | null
-          address?: string | null
         }
         Update: {
           id?: string
@@ -131,10 +166,20 @@ export interface Database {
           checkout_date?: string | null
           security_deposit?: number | null
           meter_number?: string | null
+          aadhar_number?: string | null
+          gender?: string | null
+          marital_status?: string | null
+          employment_status?: string | null
+          occupancy_count?: number
+          initial_meter_reading?: number
+          final_meter_reading?: number
+          advance_balance?: number
+          total_arrears_balance?: number
           is_active?: boolean
+          profile_url?: string | null
+          address?: string | null
           created_at?: string
           emergency_contact?: string | null
-          address?: string | null
         }
       }
       bills: {
@@ -142,14 +187,18 @@ export interface Database {
           id: string
           tenant_id: string
           billing_month: string
-          billing_start_date: string | null
-          billing_end_date: string | null
+          current_reading_date: string
           previous_reading: number
           current_reading: number
           units_consumed: number | null
           electricity_amount: number
           rent_amount: number
+          paid_amount: number
+          remaining_balance: number
+          arrears_included: number
+          advance_applied: number
           total_amount: number
+          status: string
           is_paid: boolean
           pdf_url: string | null
           created_at: string
@@ -158,13 +207,17 @@ export interface Database {
           id?: string
           tenant_id: string
           billing_month: string
-          billing_start_date?: string | null
-          billing_end_date?: string | null
+          current_reading_date?: string
           previous_reading: number
           current_reading: number
           electricity_amount: number
           rent_amount: number
+          paid_amount?: number
+          remaining_balance?: number
+          arrears_included?: number
+          advance_applied?: number
           total_amount: number
+          status?: string
           is_paid?: boolean
           pdf_url?: string | null
           created_at?: string
@@ -173,13 +226,17 @@ export interface Database {
           id?: string
           tenant_id?: string
           billing_month?: string
-          billing_start_date?: string | null
-          billing_end_date?: string | null
+          current_reading_date?: string
           previous_reading?: number
           current_reading?: number
           electricity_amount?: number
           rent_amount?: number
+          paid_amount?: number
+          remaining_balance?: number
+          arrears_included?: number
+          advance_applied?: number
           total_amount?: number
+          status?: string
           is_paid?: boolean
           pdf_url?: string | null
           created_at?: string
@@ -210,6 +267,15 @@ export interface Database {
           file_type?: string | null
           created_at?: string
         }
+      }
+    }
+    Functions: {
+      increment_tenant_advance: {
+        Args: {
+          t_id: string
+          amount: number
+        }
+        Returns: void
       }
     }
   }

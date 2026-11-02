@@ -75,8 +75,11 @@ function getPending(bill: any) {
   const status = getStatus(bill).toLowerCase();
   if (status === "paid" || status === "advance paid" || status === "cancelled") return 0;
   const total = Number(bill.total_amount ?? 0);
-  const paid = Number(bill.paid_amount ?? 0);
-  return Math.max(0, Number(bill.remaining_balance ?? total - paid));
+  if (status === "due" || status === "pending") return total;
+  if (bill.paid_amount != null) {
+    return Math.max(0, total - Number(bill.paid_amount));
+  }
+  return Math.max(0, Number(bill.remaining_balance ?? total));
 }
 
 export function CollectionReportPDF({ bills, billingMonth }: { bills: any[]; billingMonth: string }) {

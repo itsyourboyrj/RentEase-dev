@@ -1,20 +1,50 @@
-name: Keep-Database-Alive
+name: Keep Database Active
+
 on:
   schedule:
-    - cron: '0 0 */4 * *' # Runs every 4 days
-  workflow_dispatch: # Allows manual run
+    - cron: "17 6,18 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   ping:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - name: Ping Supabase API
+      - name: Query Supabase database
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          if [ -z "${{ secrets.SUPABASE_URL }}" ]; then
-            echo "Error: SUPABASE_URL secret is missing in GitHub Settings"
+          set -euo pipefail
+
+          if [[ -z "${SUPABASE_URL:-}" ]]; then
+            echo "SUPABASE_URL secret is missing."
             exit 1
           fi
-          # We hit the health-check endpoint of your Supabase project
-          curl -I "${{ secrets.SUPABASE_URL }}/rest/v1/" \
-          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
+          if [[ -z "${SUPABASE_ANON_KEY:-}" ]]; then
+            echo "SUPABASE_ANON_KEY secret is missing."
+            exit 1
+          fi
+          if [[ "$SUPABASE_URL" != https://* ]]; then
+            echo "SUPABASE_URL must start with https://."
+            exit 1
+          fi
+
+          supabase_url="${SUPABASE_URL%/}"
+          curl \
+            --head \
+            --fail \
+            --silent \
+            --show-error \
+            --retry 4 \
+            --retry-delay 5 \
+            --connect-timeout 15 \
+            --max-time 45 \
+            --output /dev/null \
+            --write-out "Supabase database request returned HTTP %{http_code}\n" \
+            --header "apikey: ${SUPABASE_ANON_KEY}" \
+            --header "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            "${supabase_url}/rest/v1/owners?select=id&limit=1"

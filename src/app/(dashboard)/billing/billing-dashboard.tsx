@@ -3,7 +3,6 @@
 import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { BillingTable } from "./billing-table";
 import { AdvanceModal } from "./advance-modal";
 import { BulkBillingPicker } from "./bulk-picker";
@@ -23,7 +22,6 @@ export function BillingDashboard({
 }) {
   const currentMonthStr = new Date().toISOString().slice(0, 7);
   const [selectedMonth, setSelectedMonth] = useState(currentMonthStr);
-  const [search, setSearch] = useState("");
 
   const availableMonths = useMemo(() => {
     const months = initialBills.map((b: any) => b.billing_month as string);
@@ -36,14 +34,8 @@ export function BillingDashboard({
     : availableMonths[0] ?? selectedMonth;
 
   const filteredBills = useMemo(() => {
-    return initialBills.filter((b: any) => {
-      const matchesMonth = b.billing_month === effectiveMonth;
-      const matchesSearch = (b.tenants?.name ?? "")
-        .toLowerCase()
-        .includes(search.toLowerCase());
-      return matchesMonth && matchesSearch;
-    });
-  }, [initialBills, effectiveMonth, search]);
+    return initialBills.filter((bill: any) => bill.billing_month === effectiveMonth);
+  }, [initialBills, effectiveMonth]);
 
   const monthlyBills = useMemo(
     () => initialBills.filter((bill: any) => bill.billing_month === effectiveMonth),
@@ -128,19 +120,13 @@ export function BillingDashboard({
         </div>
       )}
 
-      {/* SEARCH + TABLE */}
+      {/* BILL TABLE */}
       {initialBills.length === 0 ? (
         <div className="text-center py-20 text-muted-foreground">
           No invoices yet. Use Fast Billing or create a single bill.
         </div>
       ) : (
         <div className="glass-card rounded-2xl overflow-hidden p-4 sm:p-5">
-          <Input
-            placeholder="Search tenant name..."
-            className="mb-4 h-11 rounded-xl bg-background/80 shadow-none"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
           <BillingTable
             bills={filteredBills}
             owner={owner}

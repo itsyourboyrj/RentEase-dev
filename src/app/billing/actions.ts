@@ -191,7 +191,13 @@ export async function bulkCreateBills(billsData: any[]) {
     if (typeof bill.total_amount !== 'number' || !Number.isFinite(bill.total_amount)) throw new Error('Each bill must have a valid total_amount')
   }
 
-  const { error } = await supabase.from('bills').insert(billsData)
+  const billsToInsert = billsData.map(bill => ({
+    ...bill,
+    paid_amount: bill.paid_amount ?? 0,
+    remaining_balance: bill.remaining_balance ?? Math.max(0, bill.total_amount - (bill.paid_amount ?? 0))
+  }))
+
+  const { error } = await supabase.from('bills').insert(billsToInsert)
 
   if (error) throw new Error(error.message)
   revalidatePath('/billing')

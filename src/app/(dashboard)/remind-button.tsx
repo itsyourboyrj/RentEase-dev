@@ -7,6 +7,7 @@ interface Bill {
   tenants?: { name?: string; phone?: string } | null;
   billing_month?: string | null;
   remaining_balance?: number | null;
+  paid_amount?: number | null;
   total_amount?: number | null;
 }
 
@@ -21,7 +22,11 @@ export function RemindButton({ bill, ownerUpiId }: { bill: Bill; ownerUpiId?: st
 
     const tenantName = bill.tenants?.name ?? "Tenant";
     const month = bill.billing_month ?? "this month";
-    const amount = Number(bill.remaining_balance ?? bill.total_amount ?? 0);
+    const remainingBalance = Number(bill.remaining_balance);
+    const amount = remainingBalance > 0
+      ? remainingBalance
+      : Math.max(0, Number(bill.total_amount ?? 0) - Number(bill.paid_amount ?? 0));
+    const formattedAmount = amount.toLocaleString("en-IN");
 
     let upiLine: string;
     if (ownerUpiId) {
@@ -34,8 +39,8 @@ export function RemindButton({ bill, ownerUpiId }: { bill: Bill; ownerUpiId?: st
 
     const msg =
       `*Payment Reminder / भुगतान अनुस्मारक*\n\n` +
-      `Hi ${tenantName}, your total due for ${month} is *₹${amount}*.\n` +
-      `नमस्ते ${tenantName}, ${month} के लिए आपका कुल बकाया *₹${amount}* है।\n\n` +
+      `Hi, this is a reminder for ${tenantName}: your payment of *₹${formattedAmount}* for ${month} is pending.\n` +
+      `नमस्ते ${tenantName}, यह एक रिमाइंडर है कि ${month} के लिए आपका *₹${formattedAmount}* का भुगतान बाकी है।\n\n` +
       upiLine;
 
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`);

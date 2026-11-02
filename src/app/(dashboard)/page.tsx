@@ -27,6 +27,29 @@ interface OverdueBill {
   } | null;
 }
 
+function getOutstandingBalance(bill: {
+  remaining_balance: number | null;
+  total_amount: number;
+  paid_amount: number | null;
+}) {
+  const remainingBalance = Number(bill.remaining_balance);
+  if (Number.isFinite(remainingBalance) && remainingBalance > 0) return remainingBalance;
+
+  return Math.max(0, Number(bill.total_amount) - Number(bill.paid_amount ?? 0));
+}
+
+function isOutstandingBill(bill: {
+  is_paid: boolean | null;
+  status: string | null;
+  remaining_balance: number | null;
+  total_amount: number;
+  paid_amount: number | null;
+}) {
+  return bill.is_paid !== true &&
+    !["Paid", "Advance Paid", "Cancelled"].includes(bill.status ?? "") &&
+    getOutstandingBalance(bill) > 0;
+}
+
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -73,12 +96,14 @@ export default async function DashboardPage() {
   // --- SHOW PROFESSIONAL DASHBOARD FOR REGULAR USERS ---
   const { data: unpaidBills } = await supabase
     .from("bills")
-    .select("remaining_balance")
-    .gt("remaining_balance", 0);
+    .select("remaining_balance, total_amount, paid_amount, status, is_paid")
+    .or("remaining_balance.gt.0,is_paid.eq.false,status.eq.Due,status.eq.Partial,status.eq.Pending");
 
-  const totalDues = unpaidBills?.reduce((sum, bill) => sum + Number(bill.remaining_balance ?? 0), 0) || 0;
+  const totalDues = unpaidBills
+    ?.filter(isOutstandingBill)
+    .reduce((sum, bill) => sum + getOutstandingBalance(bill), 0) || 0;
 
-  const { data: overdueBills } = await supabase
+  const { data: pendingBillCandidates } = await supabase
     .from("bills")
     .select(`
       id,
@@ -87,15 +112,21 @@ export default async function DashboardPage() {
       paid_amount,
       remaining_balance,
       status,
+      is_paid,
       tenants (
         name,
         phone,
         flats (flat_code)
       )
     `)
-    .gt("remaining_balance", 0)
+    .or("remaining_balance.gt.0,is_paid.eq.false,status.eq.Due,status.eq.Partial,status.eq.Pending")
     .order("created_at", { ascending: false })
-    .limit(5);
+    .limit(20);
+
+  const overdueBills = (pendingBillCandidates ?? [])
+    .map(bill => ({ ...bill, remaining_balance: getOutstandingBalance(bill) }))
+    .filter(isOutstandingBill)
+    .slice(0, 5);
 
   return (
     <div className="space-y-8 pb-10">

@@ -36,20 +36,20 @@ export function DeleteButton({ table, id, label }: { table: string; id: string; 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors h-8 w-8">
+        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-full h-8 w-8">
           <Trash2 className="h-4 w-4" />
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="rounded-[32px] border-none shadow-2xl p-8">
+      <AlertDialogContent className="rounded-3xl shadow-2xl p-6">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-2xl font-black tracking-tighter">Delete {label}?</AlertDialogTitle>
-          <AlertDialogDescription className="text-slate-500 font-medium">
+          <AlertDialogTitle className="text-xl font-semibold tracking-tight">Delete {label}?</AlertDialogTitle>
+          <AlertDialogDescription className="text-muted-foreground">
             This action cannot be undone. This will permanently remove the data from our servers.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="mt-4">
-          <AlertDialogCancel disabled={loading} className="rounded-2xl border-none bg-slate-100 font-bold">Cancel</AlertDialogCancel>
-          <Button onClick={handleDelete} disabled={loading} className="rounded-2xl bg-red-500 hover:bg-red-600 font-bold">
+          <AlertDialogCancel disabled={loading} className="rounded-xl bg-muted font-medium">Cancel</AlertDialogCancel>
+          <Button onClick={handleDelete} disabled={loading} variant="destructive" className="rounded-xl font-medium">
             {loading ? <Loader2 className="animate-spin" /> : "Delete Forever"}
           </Button>
         </AlertDialogFooter>

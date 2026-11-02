@@ -91,12 +91,12 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-background">
-      <Card className="w-full max-w-md border-none shadow-[0_32px_64px_-15px_rgba(0,0,0,0.1)] p-4">
+      <Card className="w-full max-w-md rounded-3xl border-white/80 dark:border-white/10 bg-white/80 dark:bg-slate-900/85 shadow-[0_24px_70px_-35px_rgba(15,23,42,0.4)] p-4 backdrop-blur-xl">
         <CardHeader className="text-center">
-          <div className="h-16 w-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-4 rotate-3">
+          <div className="h-14 w-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
             <KeyRound className="h-8 w-8" />
           </div>
-          <CardTitle className="text-3xl font-black tracking-tighter">New Password</CardTitle>
+          <CardTitle className="text-2xl font-semibold tracking-tight">Choose a new password</CardTitle>
           <CardDescription className="text-base">
             Create a strong password to secure your account.
           </CardDescription>
@@ -106,7 +106,7 @@ export default function ResetPasswordPage() {
 
             {/* Password field */}
             <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              <Label className="text-sm font-medium text-muted-foreground">
                 New Password
               </Label>
               <div className="relative">
@@ -116,7 +116,7 @@ export default function ResetPasswordPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="h-14 bg-muted/40 border-none text-lg focus-visible:ring-primary pr-12"
+                  className="h-11 bg-background/80 text-base focus-visible:ring-primary pr-12"
                   placeholder="••••••••"
                 />
                 <button
@@ -136,7 +136,7 @@ export default function ResetPasswordPage() {
                     {[1, 2, 3, 4].map((i) => (
                       <div
                         key={i}
-                        className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                          className={`h-1.5 flex-1 rounded-full transition-colors duration-150 ${
                           i <= strength.score ? strength.color : "bg-muted"
                         }`}
                       />
@@ -159,7 +159,7 @@ export default function ResetPasswordPage() {
 
             {/* Confirm password field */}
             <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              <Label className="text-sm font-medium text-muted-foreground">
                 Confirm Password
               </Label>
               <div className="relative">
@@ -169,7 +169,7 @@ export default function ResetPasswordPage() {
                   required
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
-                  className={`h-14 bg-muted/40 border-none text-lg focus-visible:ring-primary pr-12 ${
+                  className={`h-11 bg-background/80 text-base focus-visible:ring-primary pr-12 ${
                     mismatch ? "ring-2 ring-red-500" : ""
                   }`}
                   placeholder="••••••••"
@@ -190,7 +190,7 @@ export default function ResetPasswordPage() {
 
             <Button
               type="submit"
-              className="w-full h-14 text-lg font-bold shadow-xl shadow-primary/20"
+              className="w-full h-12 rounded-xl font-medium shadow-sm shadow-primary/20"
               disabled={loading || mismatch || strength.score < 4 || !password || !confirm}
             >
               {loading ? <Loader2 className="animate-spin" /> : "Update Password"}

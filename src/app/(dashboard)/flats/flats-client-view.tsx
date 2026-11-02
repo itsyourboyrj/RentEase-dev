@@ -36,16 +36,16 @@ export function FlatsClientView({ flats, buildings }: { flats: any[]; buildings:
   return (
     <>
       {/* Summary Bar */}
-      <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
-        <div className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-full text-xs font-bold whitespace-nowrap">
-          <div className="h-2 w-2 rounded-full bg-indigo-500" />
+      <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+        <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-800 dark:bg-blue-950/40 dark:text-blue-200 rounded-full text-xs font-medium whitespace-nowrap">
+          <div className="h-2 w-2 rounded-full bg-blue-500" />
           {flats.filter(f => deriveFlatStatus(f) === "Occupied").length} Occupied
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold whitespace-nowrap">
+        <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200 rounded-full text-xs font-medium whitespace-nowrap">
           <div className="h-2 w-2 rounded-full bg-emerald-500" />
           {flats.filter(f => deriveFlatStatus(f) === "Vacant").length} Vacant
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-full text-xs font-bold whitespace-nowrap">
+        <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200 rounded-full text-xs font-medium whitespace-nowrap">
           <div className="h-2 w-2 rounded-full bg-amber-500" />
           {flats.filter(f => deriveFlatStatus(f) === "Booked").length} Booked
         </div>
@@ -74,7 +74,7 @@ export function FlatsClientView({ flats, buildings }: { flats: any[]; buildings:
       {filtered.length === 0 ? (
         <div className="text-center py-20 text-muted-foreground">No flats match your filters.</div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filtered.map((flat) => {
             const activeTenant = flat.tenants?.find((t: any) => t.is_active);
             return <FlatCard key={flat.id} flat={flat} tenant={activeTenant} />;

@@ -100,31 +100,31 @@ function TenantProfileContent({ id }: { id: string }) {
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-20">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" className="rounded-full bg-white/50" asChild>
+        <Button variant="ghost" size="icon" className="rounded-xl" asChild>
           <Link href="/tenants"><ArrowLeft className="h-5 w-5" /></Link>
         </Button>
-        <h1 className="text-3xl font-black tracking-tighter">Resident Profile</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Resident profile</h1>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-8">
+      <div className="grid lg:grid-cols-3 gap-5">
 
         {/* LEFT COLUMN: IDENTITY CARD */}
         <div className="lg:col-span-1 space-y-6">
-          <Card className="glass-card border-none rounded-[40px] overflow-hidden shadow-2xl">
-            <div className="h-32 bg-gradient-to-br from-primary to-indigo-700 relative">
-              <div className="absolute -bottom-12 left-1/2 -translate-x-1/2">
+          <Card className="glass-card rounded-2xl overflow-hidden shadow-sm gap-0">
+            <div className="h-24 bg-gradient-to-br from-primary/15 via-primary/10 to-indigo-100/70 relative dark:to-indigo-950/50">
+              <div className="absolute -bottom-10 left-1/2 -translate-x-1/2">
                 <div className="relative group">
-                  <div className="h-24 w-24 rounded-3xl border-4 border-white shadow-2xl bg-slate-100 overflow-hidden">
+                  <div className="h-20 w-20 rounded-full border-4 border-white shadow-md bg-slate-100 overflow-hidden">
                     {tenant.profile_url ? (
                       <img src={tenant.profile_url} className="h-full w-full object-cover" alt={tenant.name} />
                     ) : (
-                      <div className="h-full w-full flex items-center justify-center text-3xl font-black text-primary">
+                      <div className="h-full w-full flex items-center justify-center text-2xl font-semibold text-primary">
                         {tenant.name?.[0] ?? "?"}
                       </div>
                     )}
                   </div>
 
-                  <label className="absolute -bottom-2 -right-2 p-2 bg-primary text-white rounded-lg shadow-lg cursor-pointer hover:scale-110 transition-transform" aria-label="Upload profile photo">
+                  <label className="absolute bottom-0 right-0 p-2 bg-primary text-white rounded-full shadow-md cursor-pointer hover:bg-primary/90 transition-colors" aria-label="Upload profile photo">
                     <Camera className="h-4 w-4" />
                     <input type="file" className="hidden" onChange={handleProfileUpdate} accept="image/*" />
                   </label>
@@ -145,10 +145,10 @@ function TenantProfileContent({ id }: { id: string }) {
                 </div>
               </div>
             </div>
-            <CardContent className="pt-16 pb-8 text-center space-y-4">
+            <CardContent className="pt-14 pb-6 text-center space-y-4">
               <div>
-                <h2 className="text-2xl font-black tracking-tighter">{tenant.name}</h2>
-                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
+                <h2 className="text-xl font-semibold tracking-tight">{tenant.name}</h2>
+                <p className="text-sm text-muted-foreground">
                   Flat {tenant.flats?.flat_code}
                 </p>
               </div>
@@ -160,10 +160,10 @@ function TenantProfileContent({ id }: { id: string }) {
               </div>
 
               <div className="pt-4 grid grid-cols-1 gap-3">
-                <div className="flex items-center justify-center gap-2 text-sm font-bold text-slate-600 bg-slate-50 p-3 rounded-2xl">
+                <div className="flex items-center justify-center gap-2 text-sm font-medium text-slate-700 bg-muted/70 p-3 rounded-xl">
                   <Phone className="h-4 w-4 text-primary" /> {tenant.phone}
                 </div>
-                <div className="flex items-center justify-center gap-2 text-sm font-bold text-slate-600 bg-slate-50 p-3 rounded-2xl">
+                <div className="flex items-center justify-center gap-2 text-sm font-medium text-slate-700 bg-muted/70 p-3 rounded-xl">
                   <Mail className="h-4 w-4 text-primary" /> {tenant.email || "No Email"}
                 </div>
               </div>
@@ -171,24 +171,24 @@ function TenantProfileContent({ id }: { id: string }) {
           </Card>
 
           {/* FINANCIAL STATUS CARD */}
-          <Card className="glass-card border-none rounded-[32px] p-6 bg-primary/5">
-            <h3 className="text-xs font-black uppercase tracking-widest text-primary mb-4">Financial Status</h3>
+          <Card className="glass-card rounded-2xl p-5 bg-primary/[0.04]">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-4">Financial overview</h3>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-slate-500">Monthly Rent</span>
-                <span className="text-lg font-black text-primary font-mono italic">₹{tenant.flats?.rent_amount ?? "—"}</span>
+                <span className="text-sm text-muted-foreground">Monthly rent</span>
+                <span className="text-base font-semibold text-primary">₹{tenant.flats?.rent_amount ?? "—"}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-slate-500">Security Deposit</span>
-                <span className="text-lg font-black text-slate-700 font-mono italic">₹{tenant.security_deposit ?? "—"}</span>
+                <span className="text-sm text-muted-foreground">Security deposit</span>
+                <span className="text-base font-semibold text-foreground">₹{tenant.security_deposit ?? "—"}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-slate-500">Building</span>
-                <span className="text-sm font-bold text-slate-700">{tenant.flats?.buildings?.name ?? "N/A"}</span>
+                <span className="text-sm text-muted-foreground">Building</span>
+                <span className="text-sm font-medium">{tenant.flats?.buildings?.name ?? "N/A"}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-slate-500">Join Date</span>
-                <span className="text-sm font-bold text-slate-700">{tenant.join_date ? new Date(tenant.join_date).toLocaleDateString() : "N/A"}</span>
+                <span className="text-sm text-muted-foreground">Join date</span>
+                <span className="text-sm font-medium">{tenant.join_date ? new Date(tenant.join_date).toLocaleDateString() : "N/A"}</span>
               </div>
             </div>
           </Card>
@@ -198,14 +198,14 @@ function TenantProfileContent({ id }: { id: string }) {
         <div className="lg:col-span-2 space-y-6">
 
           <div className="flex justify-between items-center">
-            <h3 className="text-xl font-black tracking-tighter">Verified Information</h3>
+            <h3 className="text-lg font-semibold tracking-tight">Resident information</h3>
             <div className="flex gap-2">
               <EditTenantModal tenant={tenant} onSaved={fetchData} />
               {tenant.is_active && <CheckoutModal tenant={tenant} />}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <InfoTile icon={ShieldCheck} label="Aadhar Number" value={maskAadhar(tenant.aadhar_number)} />
             <InfoTile icon={User} label="Gender" value={tenant.gender || "Not Specified"} />
             <InfoTile icon={Heart} label="Marital Status" value={tenant.marital_status || "Not Specified"} />
@@ -219,14 +219,14 @@ function TenantProfileContent({ id }: { id: string }) {
           </div>
 
           {/* DOCUMENTS SECTION */}
-          <Card className="glass-card border-none rounded-[32px] p-8">
+          <Card className="glass-card rounded-2xl p-5 sm:p-6">
             <CardHeader className="p-0 mb-6 flex flex-row justify-between items-center">
-              <CardTitle className="text-lg font-black flex items-center gap-2">
-                <FileText className="h-5 w-5 text-primary" /> Attached Documents
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" /> Documents
               </CardTitle>
             </CardHeader>
 
-            <form onSubmit={handleFileUpload} className="flex flex-wrap gap-4 p-4 bg-muted/50 rounded-2xl border-2 border-dashed mb-6">
+            <form onSubmit={handleFileUpload} className="flex flex-wrap gap-3 p-4 bg-muted/40 rounded-xl border border-dashed border-border mb-5">
               <input type="hidden" name="tenant_id" value={tenant.id} />
               <div className="space-y-1">
                 <Label className="text-[10px] uppercase font-bold">Document Name</Label>
@@ -244,7 +244,7 @@ function TenantProfileContent({ id }: { id: string }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {docs.length > 0 ? (
                 docs.map((doc: any) => (
-                  <div key={doc.id} className="relative group flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-100 hover:border-primary hover:shadow-xl transition-all">
+                  <div key={doc.id} className="relative group flex items-center gap-4 p-4 rounded-xl bg-card border border-border hover:border-primary transition-colors">
                     <button
                       onClick={() => handleDeleteDoc(doc.id, doc.file_url)}
                       className="absolute top-2 right-2 p-1.5 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
@@ -253,19 +253,19 @@ function TenantProfileContent({ id }: { id: string }) {
                       <Trash2 className="h-4 w-4" />
                     </button>
                     <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 min-w-0">
-                      <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform shrink-0">
+                      <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
                         <FileText className="h-5 w-5" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-black truncate uppercase tracking-tighter">{doc.name}</p>
-                        <p className="text-[10px] text-slate-400 font-bold">CLICK TO VIEW</p>
+                        <p className="text-sm font-medium truncate">{doc.name}</p>
+                        <p className="text-xs text-muted-foreground">Open document</p>
                       </div>
                     </a>
                   </div>
                 ))
               ) : (
-                <div className="col-span-full py-10 text-center border-2 border-dashed rounded-[32px] bg-slate-50/50">
-                  <p className="text-sm font-bold text-slate-400">No identity documents found.</p>
+                <div className="col-span-full py-10 text-center border border-dashed border-border rounded-2xl bg-muted/30">
+                  <p className="text-sm text-muted-foreground">No identity documents found.</p>
                 </div>
               )}
             </div>
@@ -286,12 +286,12 @@ function maskAadhar(aadhar: string | null | undefined): string {
 
 function InfoTile({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
   return (
-    <div className="p-5 rounded-[28px] bg-white border border-slate-100 shadow-sm space-y-1.5">
-      <div className="flex items-center gap-2 text-slate-400">
+    <div className="p-4 rounded-2xl bg-card/80 border border-border/80 shadow-sm space-y-1.5">
+      <div className="flex items-center gap-2 text-muted-foreground">
         <Icon className="h-3 w-3" />
-        <p className="text-[9px] font-black uppercase tracking-widest">{label}</p>
+        <p className="text-[10px] font-medium uppercase tracking-wide">{label}</p>
       </div>
-      <p className="text-sm font-bold text-slate-800">{value}</p>
+      <p className="text-sm font-medium text-foreground">{value}</p>
     </div>
   );
 }

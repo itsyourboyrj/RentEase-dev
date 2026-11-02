@@ -58,22 +58,22 @@ export default function BuildingsPage() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary">Buildings</h1>
-          <p className="text-muted-foreground">Manage your property locations and rates.</p>
+          <h1 className="text-3xl font-semibold tracking-tight">Buildings</h1>
+          <p className="text-muted-foreground">Manage your properties and utility rates.</p>
         </div>
 
         <form
           id="add-building-form"
           action={handleSubmit}
-          className="flex flex-wrap gap-2 bg-card p-3 border rounded-xl shadow-sm"
+          className="glass-card flex w-full flex-wrap gap-2 rounded-2xl p-3 md:w-auto"
         >
-          <input name="name" placeholder="Building Name" className="bg-transparent border-b px-2 text-sm focus:outline-none focus:border-primary" required />
-          <input name="address" placeholder="Address" className="bg-transparent border-b px-2 text-sm focus:outline-none focus:border-primary" required />
-          <div className="flex items-center gap-1 border-b px-2">
+          <input name="name" aria-label="Building name" placeholder="Building name" className="h-10 min-w-0 flex-1 rounded-xl border border-input bg-white/80 dark:bg-slate-950/70 px-3 text-sm outline-none transition-shadow placeholder:text-muted-foreground/80 focus-visible:ring-2 focus-visible:ring-ring/50 md:w-36 md:flex-none" required />
+          <input name="address" aria-label="Address" placeholder="Address" className="h-10 min-w-0 flex-1 rounded-xl border border-input bg-white/80 dark:bg-slate-950/70 px-3 text-sm outline-none transition-shadow placeholder:text-muted-foreground/80 focus-visible:ring-2 focus-visible:ring-ring/50 md:w-36 md:flex-none" required />
+          <div className="flex h-10 items-center gap-1 rounded-xl border border-input bg-white/80 dark:bg-slate-950/70 px-3">
             <span className="text-xs text-muted-foreground">₹</span>
-            <input name="electricity_rate" type="number" step="0.1" defaultValue="8" className="bg-transparent border-none text-sm focus:outline-none w-12" required />
+            <input name="electricity_rate" aria-label="Electricity rate per unit" type="number" step="0.1" defaultValue="8" className="w-14 bg-transparent text-sm outline-none" required />
           </div>
-          <Button type="submit" size="sm" className="rounded-full" disabled={isSubmitting}>
+          <Button type="submit" size="sm" className="h-10 rounded-xl px-4" disabled={isSubmitting}>
             {isSubmitting ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Plus className="mr-1 h-4 w-4" />}
             {isSubmitting ? "Adding..." : "Add"}
           </Button>
@@ -85,35 +85,35 @@ export default function BuildingsPage() {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : (
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {buildings.length === 0 ? (
-            <div className="col-span-full flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-xl bg-card/50">
-              <Building2 className="h-12 w-12 text-muted-foreground/30 mb-4" />
-              <p className="text-muted-foreground font-medium">No buildings yet.</p>
-              <p className="text-sm text-muted-foreground">Use the form above to add your first property.</p>
+            <div className="surface-card col-span-full flex flex-col items-center justify-center rounded-2xl border-dashed py-16">
+              <Building2 className="mb-3 h-9 w-9 text-muted-foreground/50" />
+              <p className="font-medium">No buildings yet</p>
+              <p className="text-sm text-muted-foreground">Add your first property using the form above.</p>
             </div>
           ) : (
             buildings.map((b) => (
               <div key={b.id} className="group relative">
-                <div className="glass-card rounded-[32px] p-6 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] hover:-translate-y-2 overflow-hidden border-white/40">
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
-                      <Building2 className="h-7 w-7" />
+                <div className="glass-card rounded-2xl p-5 transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg overflow-hidden">
+                  <div className="flex justify-between items-start mb-5">
+                    <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                      <Building2 className="h-5 w-5" />
                     </div>
                     <DeleteButton table="buildings" id={b.id} label={b.name} />
                   </div>
 
-                  <h3 className="text-2xl font-black tracking-tighter mb-1 truncate">{b.name}</h3>
-                  <p className="text-slate-500 text-sm font-medium flex items-center gap-2 mb-6">
+                  <h3 className="text-lg font-semibold tracking-tight mb-1 truncate">{b.name}</h3>
+                  <p className="text-muted-foreground text-sm flex items-center gap-2 mb-5">
                     <MapPin className="h-3.5 w-3.5" /> {b.address}
                   </p>
 
-                  <div className="flex items-center gap-4 pt-4 border-t border-dashed border-slate-200">
+                  <div className="flex items-center gap-4 pt-4 border-t border-border">
                     <div className="flex-1">
-                      <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest">Rate</p>
-                      <p className="text-sm font-bold text-primary italic">₹{b.electricity_rate}/unit</p>
+                      <p className="text-[11px] uppercase font-medium text-muted-foreground tracking-wide">Electricity rate</p>
+                      <p className="text-sm font-semibold text-foreground">₹{b.electricity_rate}/unit</p>
                     </div>
-                    <Button variant="secondary" className="rounded-2xl font-bold hover:bg-primary hover:text-white transition-all shadow-sm" asChild>
+                    <Button variant="secondary" className="rounded-xl font-medium" asChild>
                       <Link href={`/buildings/${b.id}`}>View Flats</Link>
                     </Button>
                   </div>

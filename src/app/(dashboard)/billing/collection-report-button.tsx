@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, Loader2 } from "lucide-react";
+import { Download, FileText, Loader2 } from "lucide-react";
 import { PDFViewer, pdf } from "@react-pdf/renderer";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -65,20 +65,20 @@ export function CollectionReportButton({ bills, billingMonth }: { bills: any[]; 
         onClick={previewOnMobile}
         variant="ghost"
         size="sm"
-        className="lg:hidden rounded-xl text-[10px] font-black uppercase text-slate-400 hover:text-primary"
+        className="lg:hidden rounded-xl text-xs font-medium text-muted-foreground"
         disabled={isGenerating || bills.length === 0}
       >
         {isGenerating ? <Loader2 className="animate-spin" /> : null}
-        Send Report to Me
+        <FileText className="h-4 w-4" /> View report
       </Button>
       <Button
         onClick={() => setOpen(true)}
         variant="ghost"
         size="sm"
-        className="hidden lg:inline-flex rounded-xl text-[10px] font-black uppercase text-slate-400 hover:text-primary"
+        className="hidden lg:inline-flex rounded-xl text-xs font-medium text-muted-foreground"
         disabled={bills.length === 0}
       >
-        Send Report to Me
+        <FileText className="h-4 w-4" /> View report
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>

@@ -28,8 +28,8 @@ export function SendReportButton({ bills, owner, totalBilled, totalCollected, to
   if (!owner?.phone) return null;
 
   return (
-    <Button onClick={sendReport} variant="ghost" size="sm" className="rounded-xl text-[10px] font-black uppercase text-slate-400 hover:text-primary">
-      Send Report to Me
+    <Button onClick={sendReport} variant="outline" size="sm" className="rounded-xl text-xs font-medium text-muted-foreground">
+      Send to WhatsApp
     </Button>
   );
 }

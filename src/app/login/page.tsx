@@ -83,7 +83,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#f8fafc] relative overflow-hidden font-sans pb-14">
+    <div className="min-h-dvh w-full flex items-center justify-center bg-[#f7f8fb] dark:bg-slate-950 relative font-sans pb-14">
       {/* SUCCESS POPUP */}
       <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
         <DialogContent className="sm:max-w-md border-none bg-background p-8 text-center flex flex-col items-center">
@@ -91,7 +91,7 @@ export default function LoginPage() {
             <CheckCircle2 className="h-10 w-10 text-primary animate-in zoom-in duration-300" />
           </div>
           <DialogHeader>
-            <DialogTitle className="text-2xl font-black">Welcome to the Club!</DialogTitle>
+            <DialogTitle className="text-2xl font-semibold">Welcome to RentEase</DialogTitle>
             <DialogDescription className="text-base pt-2">
               Your account has been created. Check your email to confirm your address.
             </DialogDescription>
@@ -106,38 +106,34 @@ export default function LoginPage() {
       </Dialog>
 
       {/* BACKGROUND DECORATION */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px] animate-pulse" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-400/10 rounded-full blur-[120px] animate-pulse delay-700" />
-
-      <div className="z-10 w-full max-w-[1000px] grid lg:grid-cols-2 bg-white/40 backdrop-blur-2xl border border-white/40 rounded-[40px] shadow-[0_32px_64px_-15px_rgba(0,0,0,0.1)] overflow-hidden mx-4">
+      <div className="z-10 w-full max-w-[960px] grid lg:grid-cols-2 bg-white/75 dark:bg-slate-900/85 backdrop-blur-2xl border border-white/80 dark:border-white/10 rounded-3xl shadow-[0_24px_70px_-35px_rgba(15,23,42,0.4)] overflow-hidden mx-4">
 
         {/* LEFT SIDE: BRANDING */}
-        <div className="hidden lg:flex flex-col justify-between p-12 bg-primary text-primary-foreground relative overflow-hidden">
-          <div className="z-10 flex items-center gap-2 text-2xl font-black italic tracking-tighter">
-            <div className="bg-white text-primary p-1.5 rounded-xl shadow-lg shadow-black/10">
+        <div className="hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-[#19365f] via-[#2459a8] to-[#397bd2] text-white relative overflow-hidden">
+          <div className="z-10 flex items-center gap-2 text-xl font-semibold tracking-tight">
+            <div className="bg-white/15 border border-white/20 p-1.5 rounded-xl">
               <Building2 className="h-6 w-6" />
             </div>
             RentEase
           </div>
           <div className="z-10 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-bold uppercase tracking-widest">
-              <Sparkles className="h-3 w-3" /> New Generation App
+            <div className="inline-flex items-center gap-2 text-sm font-medium text-white/75">
+              <Sparkles className="h-4 w-4" /> A clearer way to manage rentals
             </div>
-            <h2 className="text-5xl font-black leading-[1.1] tracking-tighter">
-              Manage your <br /> Empire with <br /> <span className="text-indigo-200 italic">Clarity.</span>
+            <h2 className="text-4xl font-semibold leading-[1.08] tracking-tight">
+              Your properties, <br /> in better <br /> <span className="text-blue-100">balance.</span>
             </h2>
           </div>
-          <div className="z-10 text-sm opacity-60 font-medium">© 2026 RentEase Inc. All rights reserved.</div>
-          <div className="absolute bottom-[-50px] right-[-50px] w-64 h-64 bg-white/5 rounded-full blur-3xl" />
+          <div className="z-10 text-sm text-white/60">RentEase · Rental management</div>
         </div>
 
         {/* RIGHT SIDE: FORM */}
-        <div className="p-8 lg:p-16 flex flex-col justify-center bg-white/20">
-          <div className="mb-10 text-center lg:text-left">
-            <h1 className="text-4xl font-black tracking-tighter text-slate-900 mb-2">
+        <div className="p-7 sm:p-9 lg:p-12 flex flex-col justify-center bg-white/45 dark:bg-slate-900/45">
+          <div className="mb-8 text-center lg:text-left">
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 mb-2">
               {titles[view]}
             </h1>
-            <p className="text-slate-500 font-medium">
+            <p className="text-slate-500 dark:text-slate-400">
               {view === "login" && "Enter details to access your dashboard"}
               {view === "signup" && "Create your landlord account"}
               {view === "forgot" && "We'll send a reset link to your email"}
@@ -149,29 +145,29 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             {view === "signup" && (
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold uppercase ml-1">Full Name</Label>
-                <Input name="fullName" placeholder="Sunita Devi" className="h-12 rounded-2xl bg-white border-slate-200 shadow-sm" required />
+                <Label className="text-sm font-medium ml-1">Full name</Label>
+                <Input name="fullName" placeholder="Sunita Devi" className="h-11 rounded-xl bg-white/80 dark:bg-slate-950 border-slate-200 dark:border-white/10 shadow-none" required />
               </div>
             )}
 
             {view !== "otp-verify" && (
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold uppercase ml-1">Email Address</Label>
-                <Input name="email" type="email" placeholder="name@example.com" className="h-12 rounded-2xl bg-white border-slate-200 shadow-sm" required />
+                <Label className="text-sm font-medium ml-1">Email address</Label>
+                <Input name="email" type="email" placeholder="name@example.com" className="h-11 rounded-xl bg-white/80 dark:bg-slate-950 border-slate-200 dark:border-white/10 shadow-none" required />
               </div>
             )}
 
             {(view === "login" || view === "signup") && (
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between ml-1">
-                  <Label className="text-xs font-bold uppercase">Password</Label>
+                  <Label className="text-sm font-medium">Password</Label>
                   {view === "login" && (
-                    <button type="button" onClick={() => setView("forgot")} className="text-[10px] font-bold text-primary hover:underline uppercase tracking-widest">
-                      Forgot?
+                    <button type="button" onClick={() => setView("forgot")} className="text-sm font-medium text-primary hover:underline underline-offset-4">
+                      Forgot password?
                     </button>
                   )}
                 </div>
-                <Input name="password" type="password" placeholder="••••••••" className="h-12 rounded-2xl bg-white border-slate-200 shadow-sm" required />
+                <Input name="password" type="password" placeholder="••••••••" className="h-11 rounded-xl bg-white/80 dark:bg-slate-950 border-slate-200 dark:border-white/10 shadow-none" required />
               </div>
             )}
 
@@ -184,7 +180,7 @@ export default function LoginPage() {
                   className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
                   defaultChecked
                 />
-                <label htmlFor="remember" className="text-xs font-bold text-slate-500 cursor-pointer">
+                <label htmlFor="remember" className="text-sm text-slate-600 dark:text-slate-300 cursor-pointer">
                   Keep me logged in
                 </label>
               </div>
@@ -192,13 +188,13 @@ export default function LoginPage() {
 
             {view === "otp-verify" && (
               <div className="space-y-1.5 text-center">
-                <Label className="text-xs uppercase font-bold tracking-widest text-slate-500">
+                <Label className="text-sm font-medium text-slate-600 dark:text-slate-300">
                   Enter 6-Digit Code
                 </Label>
                 <Input
                   name="token"
                   placeholder="000000"
-                  className="h-16 text-center text-3xl font-black tracking-[0.5em] rounded-2xl bg-white border-slate-200 shadow-sm"
+                  className="h-14 text-center text-2xl font-semibold tracking-[0.4em] rounded-xl bg-white/80 dark:bg-slate-950 border-slate-200 dark:border-white/10 shadow-none"
                   maxLength={6}
                   inputMode="numeric"
                   required
@@ -208,7 +204,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              className="w-full h-14 rounded-2xl text-lg font-bold shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all mt-4"
+              className="w-full h-12 rounded-xl text-base font-medium shadow-md shadow-primary/15 mt-4"
               disabled={loading}
             >
               {loading ? <Loader2 className="animate-spin" /> : (
@@ -231,7 +227,7 @@ export default function LoginPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  className={`h-12 border-none rounded-2xl transition-all font-bold ${view === "otp-request" ? "bg-primary text-white shadow-lg" : "bg-muted/30"}`}
+                  className={`h-11 border-none rounded-xl font-medium ${view === "otp-request" ? "bg-primary text-white shadow-sm" : "bg-muted/70"}`}
                   onClick={() => setView("otp-request")}
                 >
                   <Mail className="mr-2 h-4 w-4" /> Email OTP
@@ -239,7 +235,7 @@ export default function LoginPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  className={`h-12 border-none rounded-2xl transition-all font-bold ${view === "login" ? "bg-primary text-white shadow-lg" : "bg-muted/30"}`}
+                  className={`h-11 border-none rounded-xl font-medium ${view === "login" ? "bg-primary text-white shadow-sm" : "bg-muted/70"}`}
                   onClick={() => setView("login")}
                 >
                   <ShieldCheck className="mr-2 h-4 w-4" /> Password
@@ -255,7 +251,7 @@ export default function LoginPage() {
                   if (view === "forgot") { setView("login"); return; }
                   setView(view === "signup" ? "login" : "signup");
                 }}
-                className="text-sm font-bold text-slate-400 hover:text-primary transition-colors"
+                className="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-primary transition-colors"
               >
                 {view === "signup" && "Already a user? Sign in"}
                 {view === "login" && "Don't have an account? Join us"}

@@ -95,8 +95,8 @@ export default function TenantsPage() {
     <div className="space-y-6 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black tracking-tighter">Tenants</h1>
-          <p className="text-muted-foreground">Detailed resident directory</p>
+          <h1 className="text-3xl font-semibold tracking-tight">Tenants</h1>
+          <p className="text-muted-foreground">Your resident directory</p>
         </div>
         <AddTenantModal buildings={buildings} vacantFlats={vacantFlats} onTenantAdded={async () => {
           const { data } = await supabase.from("flats").select("id, flat_code, building_id").eq("status", "Vacant");

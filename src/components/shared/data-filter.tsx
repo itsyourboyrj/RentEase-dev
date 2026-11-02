@@ -28,13 +28,13 @@ export function DataFilter({
           placeholder={searchPlaceholder}
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10 h-11 bg-card border-none shadow-sm rounded-xl"
+          className="pl-10 h-11 bg-card/90 border-border/80 shadow-none rounded-xl"
         />
       </div>
 
       <div className="flex flex-wrap gap-2">
         <Select value={selectedBuilding} onValueChange={onBuildingChange}>
-          <SelectTrigger className="w-[160px] h-11 bg-card border-none shadow-sm rounded-xl">
+          <SelectTrigger className="w-[160px] h-11 bg-card/90 border-border/80 shadow-none rounded-xl">
             <SelectValue placeholder="All Buildings" />
           </SelectTrigger>
           <SelectContent>
@@ -47,7 +47,7 @@ export function DataFilter({
 
         {statusOptions && (
           <Select value={selectedStatus} onValueChange={onStatusChange}>
-            <SelectTrigger className="w-[140px] h-11 bg-card border-none shadow-sm rounded-xl">
+            <SelectTrigger className="w-[140px] h-11 bg-card/90 border-border/80 shadow-none rounded-xl">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -61,7 +61,7 @@ export function DataFilter({
 
         {sortOptions && (
           <Select value={selectedSort} onValueChange={onSortChange}>
-            <SelectTrigger className="w-[150px] h-11 bg-card border-none shadow-sm rounded-xl">
+            <SelectTrigger className="w-[150px] h-11 bg-card/90 border-border/80 shadow-none rounded-xl">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>

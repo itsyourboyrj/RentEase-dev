@@ -68,13 +68,13 @@ export function BillingDashboard({
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-black tracking-tighter">Billing</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">Billing</h1>
           <div className="flex items-center gap-2 mt-1">
-            <p className="text-slate-500 font-medium">Viewing data for:</p>
+            <p className="text-sm text-muted-foreground">Viewing data for</p>
             <select
               value={effectiveMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="bg-primary/10 text-primary font-bold rounded-lg px-2 py-1 text-sm outline-none border-none cursor-pointer"
+              className="bg-white/75 dark:bg-slate-900/70 text-foreground font-medium rounded-lg px-3 py-1.5 text-sm outline-none border border-border cursor-pointer focus-visible:ring-2 focus-visible:ring-ring/50"
             >
               {availableMonths.map((m) => (
                 <option key={m} value={m}>
@@ -85,7 +85,7 @@ export function BillingDashboard({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 sm:flex-wrap">
           <CollectionReportButton bills={monthlyBills} billingMonth={effectiveMonth} />
           <AdvanceModal tenants={tenants} />
           <BulkBillingPicker buildings={buildings} />
@@ -96,28 +96,28 @@ export function BillingDashboard({
       {/* SUMMARY CARDS (Month-Specific) */}
       {filteredBills.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="glass-card border-none p-6 bg-primary/5 rounded-[32px]">
-            <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
+          <Card className="glass-card rounded-2xl p-5 bg-primary/[0.04]">
+            <p className="text-xs font-medium uppercase text-muted-foreground tracking-wide">
               Monthly Goal
             </p>
-            <p className="text-2xl font-black text-slate-700">
+            <p className="text-2xl font-semibold tracking-tight text-foreground">
               ₹{stats.goal.toLocaleString("en-IN")}
             </p>
           </Card>
-          <Card className="glass-card border-none p-6 bg-emerald-50 rounded-[32px]">
-            <p className="text-[10px] font-black uppercase text-emerald-600 tracking-widest">
+          <Card className="glass-card rounded-2xl p-5 bg-emerald-50/70 dark:bg-emerald-950/20">
+            <p className="text-xs font-medium uppercase text-emerald-700 dark:text-emerald-300 tracking-wide">
               Collected
             </p>
-            <p className="text-2xl font-black text-emerald-700">
+            <p className="text-2xl font-semibold tracking-tight text-emerald-800 dark:text-emerald-200">
               ₹{stats.collected.toLocaleString("en-IN")}
             </p>
           </Card>
-          <Card className="glass-card border-none p-6 bg-red-50 rounded-[32px]">
-            <p className="text-[10px] font-black uppercase text-red-600 tracking-widest">
+          <Card className="glass-card rounded-2xl p-5 bg-rose-50/70 dark:bg-rose-950/20">
+            <p className="text-xs font-medium uppercase text-rose-700 dark:text-rose-300 tracking-wide">
               Remaining
             </p>
             <div className="flex items-center gap-2">
-              <p className="text-2xl font-black text-red-700">
+              <p className="text-2xl font-semibold tracking-tight text-rose-800 dark:text-rose-200">
                 ₹{stats.remaining.toLocaleString("en-IN")}
               </p>
               {stats.remaining === 0 && (
@@ -134,10 +134,10 @@ export function BillingDashboard({
           No invoices yet. Use Fast Billing or create a single bill.
         </div>
       ) : (
-        <div className="glass-card rounded-[32px] overflow-hidden p-6">
+        <div className="glass-card rounded-2xl overflow-hidden p-4 sm:p-5">
           <Input
             placeholder="Search tenant name..."
-            className="mb-4 h-12 rounded-2xl border-none bg-slate-50 shadow-inner"
+            className="mb-4 h-11 rounded-xl bg-background/80 shadow-none"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />

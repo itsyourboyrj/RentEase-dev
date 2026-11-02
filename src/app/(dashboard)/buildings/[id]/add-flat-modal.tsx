@@ -120,9 +120,9 @@ export function AddFlatModal({ buildingId, buildingName }: { buildingId: string;
                   <Input id="bulk_rent_amount" name="rent_amount" type="number" required />
                 </div>
               </div>
-              <Button type="submit" className="w-full h-12 rounded-2xl font-black" disabled={loading}>
+              <Button type="submit" className="w-full h-11 rounded-xl font-medium" disabled={loading}>
                 {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                {loading ? "Generating..." : "GENERATE FLATS"}
+                {loading ? "Generating..." : "Generate flats"}
               </Button>
             </form>
           </TabsContent>

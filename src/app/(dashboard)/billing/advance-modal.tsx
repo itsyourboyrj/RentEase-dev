@@ -34,28 +34,27 @@ export function AdvanceModal({ tenants }: { tenants: any[] }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="rounded-2xl font-bold h-11 border-primary/20 bg-primary/5 text-primary hover:bg-primary hover:text-white transition-all shadow-sm">
+        <Button variant="outline" className="rounded-xl font-medium h-11 border-primary/20 bg-primary/5 text-primary hover:bg-primary hover:text-white shadow-none">
           <Coins className="mr-2 h-4 w-4" /> Advance Pay
         </Button>
       </DialogTrigger>
-      <DialogContent className="p-0 overflow-hidden border-none bg-white/90 backdrop-blur-xl max-w-sm rounded-[32px]">
-        <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-8 text-white text-center relative">
-          <Sparkles className="absolute top-4 right-4 h-5 w-5 opacity-30 animate-pulse" />
-          <div className="h-16 w-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/30 shadow-2xl">
-             <Coins className="h-8 w-8 text-white" />
+      <DialogContent className="p-0 overflow-hidden bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl max-w-sm rounded-3xl">
+        <div className="bg-primary/[0.06] p-6 text-foreground text-center border-b border-border/70">
+          <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3 text-primary">
+             <Coins className="h-6 w-6" />
           </div>
-          <h2 className="text-2xl font-black tracking-tighter italic">Advance Entry</h2>
-          <p className="text-indigo-100 text-xs font-bold uppercase tracking-widest opacity-80">Pre-payment Credit</p>
+          <h2 className="text-xl font-semibold tracking-tight">Record advance payment</h2>
+          <p className="text-sm text-muted-foreground">Add credit for a resident</p>
         </div>
 
-        <form action={handleSubmit} className="p-8 space-y-6">
+        <form action={handleSubmit} className="p-6 space-y-5">
           <div className="space-y-2">
-            <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Select Resident</Label>
+            <Label className="text-sm font-medium ml-1">Select resident</Label>
             <Select name="tenantId" required>
-              <SelectTrigger className="h-12 rounded-2xl bg-slate-50 border-none shadow-inner font-medium">
+              <SelectTrigger className="h-11 rounded-xl bg-background font-medium">
                 <SelectValue placeholder="Choose Tenant" />
               </SelectTrigger>
-              <SelectContent className="rounded-2xl border-none shadow-2xl">
+              <SelectContent className="rounded-xl">
                 {tenants.map(t => (
                   <SelectItem key={t.id} value={String(t.id)} className="rounded-lg">
                     {t.name} ({t.flats?.flat_code})
@@ -66,9 +65,9 @@ export function AdvanceModal({ tenants }: { tenants: any[] }) {
           </div>
 
           <div className="space-y-2">
-            <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Amount (₹)</Label>
+            <Label className="text-sm font-medium ml-1">Amount (₹)</Label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-300">₹</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 font-medium text-muted-foreground">₹</span>
               <Input
                 name="amount"
                 type="number"
@@ -76,19 +75,19 @@ export function AdvanceModal({ tenants }: { tenants: any[] }) {
                 required
                 min="1"
                 step="1"
-                className="h-14 pl-8 text-2xl font-black bg-slate-50 border-none rounded-2xl focus-visible:ring-indigo-500 shadow-inner"
+                className="h-12 pl-8 text-xl font-semibold bg-background rounded-xl focus-visible:ring-primary shadow-none"
               />
             </div>
           </div>
 
-          <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100">
-             <p className="text-[10px] leading-relaxed text-amber-700 font-bold">
+          <div className="bg-amber-50 dark:bg-amber-950/30 p-4 rounded-xl border border-amber-200/70 dark:border-amber-900/50">
+             <p className="text-xs leading-relaxed text-amber-800 dark:text-amber-200">
                Note: This amount will be stored in the resident's wallet and automatically applied to reduce their next monthly bill.
              </p>
           </div>
 
-          <Button type="submit" disabled={loading} className="w-full h-14 bg-gradient-to-r from-indigo-600 to-purple-600 hover:scale-[1.02] active:scale-95 transition-all rounded-2xl shadow-xl shadow-indigo-200 text-lg font-black">
-            {loading ? <Loader2 className="animate-spin mr-2" /> : "ADD TO WALLET"}
+          <Button type="submit" disabled={loading} className="w-full h-12 rounded-xl shadow-sm shadow-primary/15 font-medium">
+            {loading ? <Loader2 className="animate-spin mr-2" /> : "Record payment"}
           </Button>
         </form>
       </DialogContent>

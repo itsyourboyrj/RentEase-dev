@@ -40,21 +40,23 @@ export function RecordPaymentModal({ bill }: { bill: any }) {
           Record Payment
         </Button>
       </DialogTrigger>
-      <DialogContent className="p-0 overflow-hidden border-none bg-white/90 backdrop-blur-xl max-w-sm">
+      <DialogContent className="p-0 overflow-hidden bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl max-w-sm rounded-3xl">
         <DialogHeader className="sr-only">
           <DialogTitle>Record Payment</DialogTitle>
         </DialogHeader>
-        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-6 text-white text-center">
-          <IndianRupee className="h-12 w-12 mx-auto mb-2 opacity-50" />
-          <h2 className="text-2xl font-black italic">Collection</h2>
-          <p className="text-emerald-50 opacity-80 text-sm">Recording payment for {bill.tenants?.name}</p>
+        <div className="bg-emerald-50/80 dark:bg-emerald-950/30 p-6 text-foreground text-center border-b border-border/70">
+          <div className="h-11 w-11 mx-auto mb-3 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-200 flex items-center justify-center">
+            <IndianRupee className="h-5 w-5" />
+          </div>
+          <h2 className="text-xl font-semibold tracking-tight">Record payment</h2>
+          <p className="text-muted-foreground text-sm">For {bill.tenants?.name}</p>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-5">
           <div className="space-y-2">
-            <Label className="text-xs uppercase font-bold text-muted-foreground">Amount Received</Label>
+            <Label className="text-sm font-medium text-muted-foreground">Amount received</Label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">₹</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 font-medium text-muted-foreground">₹</span>
               <Input
                 type="number"
                 value={amount}
@@ -62,17 +64,17 @@ export function RecordPaymentModal({ bill }: { bill: any }) {
                   const val = parseFloat(e.target.value);
                   setAmount(Number.isFinite(val) ? val : 0);
                 }}
-                className="h-14 pl-8 text-2xl font-black bg-muted/30 border-none focus-visible:ring-emerald-500"
+                className="h-12 pl-8 text-xl font-semibold bg-background focus-visible:ring-emerald-500"
               />
             </div>
           </div>
 
-          <div className={`p-4 rounded-2xl flex items-center gap-3 ${balance <= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
+          <div className={`p-4 rounded-xl flex items-center gap-3 ${balance <= 0 ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-200' : 'bg-amber-50 text-amber-800 dark:bg-amber-950/30 dark:text-amber-200'}`}>
             {balance <= 0
               ? <CheckCircle2 className="h-5 w-5 shrink-0" />
               : <AlertCircle className="h-5 w-5 shrink-0" />
             }
-            <div className="text-sm font-bold">
+            <div className="text-sm font-medium">
               {balance <= 0
                 ? "Full Payment Received"
                 : `Partial Payment (Pending: ₹${balance.toLocaleString('en-IN')})`
@@ -83,7 +85,7 @@ export function RecordPaymentModal({ bill }: { bill: any }) {
           <Button
             onClick={handlePayment}
             disabled={loading || amount <= 0}
-            className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 shadow-xl shadow-emerald-200 text-lg font-bold rounded-2xl"
+            className="w-full h-12 bg-emerald-700 hover:bg-emerald-800 shadow-sm shadow-emerald-200/60 text-base font-medium rounded-xl"
           >
             {loading ? <Loader2 className="animate-spin" /> : "Confirm & Save"}
           </Button>

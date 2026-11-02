@@ -36,27 +36,27 @@ export function OnboardingWizard({ buildingCount }: { buildingCount: number }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[450px] border-none bg-white/80 backdrop-blur-2xl p-8 rounded-[40px] shadow-2xl">
-        <div className="flex justify-center mb-6">
-          <div className="h-20 w-20 bg-primary/10 rounded-[28px] flex items-center justify-center text-primary">
-            <Sparkles className="h-10 w-10 animate-pulse" />
+      <DialogContent className="sm:max-w-[450px] bg-white/85 dark:bg-slate-900/90 backdrop-blur-2xl p-7 sm:p-8 rounded-3xl shadow-2xl">
+        <div className="flex justify-center mb-5">
+          <div className="h-14 w-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+            <Sparkles className="h-6 w-6" />
           </div>
         </div>
 
         <DialogHeader className="text-center">
-          <DialogTitle className="text-3xl font-black tracking-tighter">
-            {isProfileIncomplete ? "Welcome to RentEase!" : "Let's build your empire"}
+          <DialogTitle className="text-2xl font-semibold tracking-tight">
+            {isProfileIncomplete ? "Welcome to RentEase" : "Add your first building"}
           </DialogTitle>
-          <DialogDescription className="text-slate-500 font-medium text-base pt-2 leading-relaxed">
+          <DialogDescription className="text-muted-foreground text-base pt-2 leading-relaxed">
             {isProfileIncomplete
-              ? "To start generating professional invoices and managing tenants, let's quickly set up your landlord profile."
-              : "Your profile looks great! Now, let's add your first building to get started."}
+              ? "Add your landlord details to start managing properties and preparing invoices."
+              : "Your profile is ready. Add a building to organize flats and residents."}
           </DialogDescription>
         </DialogHeader>
 
         <div className="mt-8 space-y-3">
           <Button
-            className="w-full h-14 rounded-2xl text-lg font-black shadow-xl shadow-primary/20 transition-all hover:gap-4 gap-2"
+            className="w-full h-12 rounded-xl font-medium shadow-sm shadow-primary/20"
             onClick={() => {
               setOpen(false);
               router.push(isProfileIncomplete ? "/settings" : "/buildings");
@@ -66,7 +66,7 @@ export function OnboardingWizard({ buildingCount }: { buildingCount: number }) {
             <ArrowRight className="h-5 w-5" />
           </Button>
 
-          <p className="text-center text-[10px] uppercase tracking-widest font-black text-slate-400">
+          <p className="text-center text-xs text-muted-foreground">
             Estimated time: 1 minute
           </p>
         </div>

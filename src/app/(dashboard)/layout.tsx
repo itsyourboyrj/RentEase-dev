@@ -11,19 +11,14 @@ export default function DashboardLayout({
 }) {
   return (
     <LanguageProvider>
-      <div className="flex h-screen overflow-hidden gradient-bg text-slate-900">
+      <div className="flex h-dvh min-h-0 overflow-hidden gradient-bg text-foreground">
         <Sidebar />
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-          {/* Decorative background orbs */}
-          <div className="absolute top-[-10%] right-[-5%] w-[30%] h-[30%] bg-purple-200/20 rounded-full blur-[100px] pointer-events-none" />
-          <div className="absolute bottom-[10%] left-[-5%] w-[20%] h-[20%] bg-blue-200/20 rounded-full blur-[100px] pointer-events-none" />
-
-          {/* Mobile Glass Header */}
-          <header className="lg:hidden h-16 flex items-center px-16 bg-white/40 backdrop-blur-md border-b border-white/20 z-40">
-            <Link href="/" className="font-black text-primary tracking-tighter italic text-xl">RentEase</Link>
+          <header className="lg:hidden h-14 shrink-0 flex items-center px-14 bg-white/75 backdrop-blur-xl border-b border-white/80 z-40 dark:bg-slate-950/75 dark:border-white/10">
+            <Link href="/" className="font-semibold text-foreground tracking-tight text-lg">RentEase</Link>
           </header>
 
-          <main className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-12 relative z-10 pb-14">
+          <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10 relative z-10 pb-14">
             <Suspense fallback={
               <div className="h-full w-full flex items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary opacity-20" />

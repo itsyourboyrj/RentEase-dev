@@ -18,10 +18,10 @@ export default async function AllFlatsPage() {
   return (
     <div className="space-y-6 pb-10">
       <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-black tracking-tighter">Property Overview</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Flats</h1>
         <p className="text-muted-foreground flex items-center gap-2">
           <DoorOpen className="h-4 w-4" />
-          Managing {flats?.length || 0} total units
+          {flats?.length || 0} rental units across your properties
         </p>
       </div>
 

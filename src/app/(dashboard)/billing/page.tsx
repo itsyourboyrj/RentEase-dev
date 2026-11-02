@@ -28,14 +28,14 @@ export default async function BillingPage() {
     return (
       <div className="space-y-6 pb-20">
         <div>
-          <h1 className="text-4xl font-black tracking-tighter">Billing</h1>
-          <p className="text-slate-500 font-medium italic">Manage invoices and collections</p>
+          <h1 className="text-3xl font-semibold tracking-tight">Billing</h1>
+          <p className="text-muted-foreground">Manage invoices and payments.</p>
         </div>
         <BoutiqueEmptyState
           icon={Receipt}
-          title="No Invoices Yet"
-          description="Generate your first invoice using Fast Billing Mode or create a single bill for a tenant."
-          buttonText="Fast Billing"
+          title="No invoices yet"
+          description="Create a bill for a tenant or generate invoices for a whole building."
+          buttonText="Start billing"
           href="/billing/bulk"
         />
       </div>

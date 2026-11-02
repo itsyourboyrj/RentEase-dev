@@ -19,13 +19,13 @@ import { toast } from "sonner";
 
 function SettingsSkeleton() {
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-20 p-4 animate-pulse">
+    <div className="max-w-5xl mx-auto space-y-8 pb-20 p-4">
       <div className="h-10 w-48 bg-slate-200 rounded-2xl" />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="h-64 bg-slate-100 rounded-[32px]" />
+        <div className="h-64 bg-muted rounded-2xl animate-pulse" />
         <div className="md:col-span-2 space-y-6">
-          <div className="h-40 bg-slate-100 rounded-[32px]" />
-          <div className="h-40 bg-slate-100 rounded-[32px]" />
+          <div className="h-40 bg-muted rounded-2xl animate-pulse" />
+          <div className="h-40 bg-muted rounded-2xl animate-pulse" />
         </div>
       </div>
     </div>
@@ -258,22 +258,25 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-20 p-4">
-      <h1 className="text-4xl font-black tracking-tight">Settings</h1>
+      <div>
+        <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
+        <p className="text-muted-foreground mt-1">Manage your profile, preferences, and account security.</p>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
 
         {/* LEFT: PROFILE PHOTO CARD */}
-        <Card className="md:col-span-1 border-none shadow-xl bg-card overflow-hidden">
+        <Card className="md:col-span-1 rounded-2xl border-border/80 shadow-sm bg-card overflow-hidden">
           <div className="h-2 bg-primary w-full" />
           <CardContent className="pt-8 flex flex-col items-center">
             <div className="relative group">
-              <div className="h-32 w-32 rounded-3xl bg-muted flex items-center justify-center text-4xl font-bold text-primary border-4 border-background shadow-2xl overflow-hidden">
+              <div className="h-28 w-28 rounded-full bg-muted flex items-center justify-center text-3xl font-semibold text-primary border-4 border-background shadow-md overflow-hidden">
                 {profilePreview
                   ? <img src={profilePreview} alt="Profile" className="h-full w-full object-cover" />
                   : (owner?.full_name?.[0] || "A")}
               </div>
               <label
-                className="absolute -bottom-2 -right-2 p-2 bg-primary text-white rounded-xl shadow-lg cursor-pointer hover:scale-110 transition-transform border-4 border-background"
+                className="absolute -bottom-2 -right-2 p-2 bg-primary text-white rounded-xl shadow-md cursor-pointer hover:bg-primary/90 transition-colors border-4 border-background"
                 aria-label="Upload profile photo"
               >
                 <Camera className="h-4 w-4" />
@@ -298,7 +301,7 @@ export default function SettingsPage() {
               )}
             </div>
             <h3 className="mt-4 font-bold text-xl">{owner?.full_name}</h3>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black">Property Owner</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Property owner</p>
           </CardContent>
         </Card>
 
@@ -306,7 +309,7 @@ export default function SettingsPage() {
         <div className="md:col-span-2 space-y-6">
           <form id="settings-form" onSubmit={handleSave} className="space-y-6">
 
-            <Card className="border-none shadow-lg bg-card">
+            <Card className="rounded-2xl border-border/80 shadow-sm bg-card">
               <CardHeader><CardTitle className="text-lg flex items-center gap-2"><User className="h-5 w-5 text-primary" /> Admin Profile</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-2">
@@ -325,7 +328,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* QR CODE UPLOAD */}
-            <Card className="border-none shadow-lg bg-card">
+            <Card className="rounded-2xl border-border/80 shadow-sm bg-card">
               <CardHeader><CardTitle className="text-lg flex items-center gap-2"><QrCode className="h-5 w-5 text-primary" /> Payment QR Code</CardTitle></CardHeader>
               <CardContent className="flex items-center gap-6">
                 <div className="h-28 w-28 border-2 border-dashed rounded-2xl flex items-center justify-center bg-muted overflow-hidden relative group shrink-0">
@@ -365,7 +368,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* APPEARANCE */}
-            <Card className="border-none shadow-lg bg-card">
+            <Card className="rounded-2xl border-border/80 shadow-sm bg-card">
               <CardHeader><CardTitle className="text-lg flex items-center gap-2"><Sun className="h-5 w-5 text-primary" /> Appearance</CardTitle></CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between">
@@ -380,14 +383,14 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
-            <Button type="submit" className="w-full h-14 text-lg font-black shadow-xl shadow-primary/20 transition-all active:scale-95" disabled={saving}>
+            <Button type="submit" className="w-full h-12 rounded-xl font-medium shadow-sm shadow-primary/15" disabled={saving}>
               {saving && <Loader2 className="animate-spin mr-2" />}
               {saving ? "SAVING..." : "SAVE SETTINGS"}
             </Button>
           </form>
 
           {/* SECURITY */}
-          <Card className="border-none shadow-lg bg-card">
+          <Card className="rounded-2xl border-border/80 shadow-sm bg-card">
             <CardHeader><CardTitle className="text-lg flex items-center gap-2"><Lock className="h-5 w-5 text-primary" /> Security</CardTitle></CardHeader>
             <CardContent>
               <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
@@ -422,7 +425,7 @@ export default function SettingsPage() {
           </Card>
 
           {/* ACCOUNT SECURITY: EMAIL CHANGE */}
-          <Card className="glass-card border-none shadow-lg overflow-hidden">
+          <Card className="glass-card rounded-2xl shadow-sm overflow-hidden">
             <CardHeader className="bg-primary/5">
               <CardTitle className="text-lg flex items-center gap-2"><Mail className="h-5 w-5 text-primary" /> Account Security</CardTitle>
             </CardHeader>
@@ -440,7 +443,7 @@ export default function SettingsPage() {
               </div>
 
               {isEmailChanging && (
-                <div className="p-4 bg-muted/30 rounded-[24px] space-y-4 border border-border/50">
+                <div className="p-4 bg-muted/30 rounded-2xl space-y-4 border border-border/70">
                   {!otpSent ? (
                     <div className="space-y-3">
                       <p className="text-xs font-medium text-muted-foreground">A verification code will be sent to your current email address.</p>
@@ -483,9 +486,9 @@ export default function SettingsPage() {
           </Card>
 
           {/* DANGER ZONE */}
-          <Card className="border-2 border-red-100 shadow-lg overflow-hidden bg-red-50/20">
+          <Card className="rounded-2xl border border-red-200/80 shadow-sm overflow-hidden bg-red-50/40 dark:border-red-900/70 dark:bg-red-950/20">
             <CardHeader className="bg-red-50/50">
-              <CardTitle className="text-red-600 flex items-center gap-2 font-black text-lg">
+              <CardTitle className="text-red-700 dark:text-red-300 flex items-center gap-2 font-semibold text-base">
                 <AlertCircle className="h-5 w-5" /> Danger Zone
               </CardTitle>
             </CardHeader>

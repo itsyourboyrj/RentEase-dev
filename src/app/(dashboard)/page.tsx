@@ -53,7 +53,7 @@ export default async function DashboardPage() {
   // --- SHOW ONBOARDING IF BRAND NEW ---
   if (!owner || isProfileIncomplete || hasNoData) {
     return (
-      <div className="space-y-8 animate-in fade-in duration-700">
+      <div className="space-y-8">
         <OnboardingWizard buildingCount={buildingCount} />
         <div className="flex flex-col items-center justify-center min-h-[60vh]">
           <BoutiqueEmptyState
@@ -98,23 +98,23 @@ export default async function DashboardPage() {
     .limit(5);
 
   return (
-    <div className="space-y-8 pb-10 animate-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-8 pb-10">
       <div className="flex flex-col gap-1">
-        <h1 className="text-4xl font-black tracking-tighter">Dashboard</h1>
-        <p className="text-slate-500 font-medium italic">Empowering your property management, {owner.full_name}</p>
+        <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground">Your properties at a glance, {owner.full_name}</p>
       </div>
 
       {/* CLICKABLE STATS GRID */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <DashboardLink href="/buildings" title="Buildings" value={buildingCount} icon={Building2} desc="Managed locations" />
         <DashboardLink href="/flats" title="Flats" value={flatCount} icon={DoorOpen} desc="View unit status" />
         <DashboardLink href="/tenants" title="Tenants" value={tenantCount} icon={Users} desc="Active residents" />
         <DashboardLink href="/billing" title="Dues" value={`\u20B9${totalDues.toLocaleString()}`} icon={IndianRupee} desc="Action required" isAlert />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-7">
-        <Card className="md:col-span-4 glass-card border-none rounded-[32px] overflow-hidden">
-          <CardHeader className="bg-white/40 border-b border-white/40">
+      <div className="grid gap-5 md:grid-cols-7">
+        <Card className="md:col-span-4 glass-card rounded-2xl overflow-hidden gap-0">
+          <CardHeader className="border-b border-border/70 py-5">
             <CardTitle className="flex items-center gap-2 text-lg">
               <AlertCircle className="h-5 w-5 text-destructive" />
               Pending Payments
@@ -139,10 +139,10 @@ export default async function DashboardPage() {
                   </TableRow>
                 ) : (
                   overdueBills.map((bill: OverdueBill) => (
-                    <TableRow key={bill.id} className="border-white/40 hover:bg-white/20">
+                    <TableRow key={bill.id} className="hover:bg-muted/60">
                       <TableCell className="pl-6 font-bold">{bill.tenants?.name ?? "Unknown tenant"}</TableCell>
-                      <TableCell className="text-xs font-black">{bill.tenants?.flats?.flat_code ?? "No flat"}</TableCell>
-                      <TableCell className="text-destructive font-black">₹{Number(bill.remaining_balance ?? bill.total_amount).toLocaleString('en-IN')}</TableCell>
+                      <TableCell className="text-xs font-medium">{bill.tenants?.flats?.flat_code ?? "No flat"}</TableCell>
+                      <TableCell className="text-destructive font-semibold">₹{Number(bill.remaining_balance ?? bill.total_amount).toLocaleString('en-IN')}</TableCell>
                       <TableCell className="text-right pr-6">
                         <RemindButton bill={bill} ownerUpiId={owner?.upi_id} />
                       </TableCell>
@@ -154,7 +154,7 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="md:col-span-3 glass-card border-none rounded-[32px] p-6">
+        <Card className="md:col-span-3 glass-card rounded-2xl p-6">
           <CardTitle className="text-lg mb-4">Quick Actions</CardTitle>
           <div className="grid gap-3">
             <QuickActionButton href="/buildings" label="Add Building" />
@@ -178,18 +178,17 @@ function DashboardLink({ href, title, value, icon: Icon, desc, isAlert }: {
   return (
     <Link href={href} className="group">
       <div className={cn(
-        "glass-card p-6 rounded-[32px] transition-all duration-500 hover:translate-y-[-4px] hover:shadow-2xl relative overflow-hidden",
-        isAlert ? "bg-red-50/50" : ""
+        "glass-card p-5 rounded-2xl transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg relative overflow-hidden",
+        isAlert ? "bg-rose-50/70 dark:bg-rose-950/20" : ""
       )}>
         <div className="flex justify-between items-start mb-4">
-          <div className={cn("p-3 rounded-2xl", isAlert ? "bg-red-100 text-red-600" : "bg-primary/10 text-primary")}>
-            <Icon className="h-6 w-6" />
+          <div className={cn("p-2.5 rounded-xl", isAlert ? "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300" : "bg-primary/10 text-primary")}>
+            <Icon className="h-5 w-5" />
           </div>
-          <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">{title}</div>
+          <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{title}</div>
         </div>
-        <div className="text-3xl font-black tracking-tighter mb-1">{value ?? 0}</div>
-        <p className={cn("text-xs font-bold", isAlert ? "text-red-500" : "text-slate-500")}>{desc}</p>
-        <div className={cn("absolute bottom-0 left-0 h-1 w-0 group-hover:w-full transition-all duration-500", isAlert ? "bg-destructive" : "bg-primary")} />
+        <div className="text-3xl font-semibold tracking-tight mb-1">{value ?? 0}</div>
+        <p className={cn("text-sm", isAlert ? "text-rose-700 dark:text-rose-300" : "text-muted-foreground")}>{desc}</p>
       </div>
     </Link>
   );
@@ -199,7 +198,7 @@ function QuickActionButton({ href, label, primary }: { href: string; label: stri
   return (
     <Button
       variant={primary ? "default" : "outline"}
-      className={cn("w-full justify-start h-12 rounded-2xl font-bold", primary ? "bg-primary shadow-lg shadow-primary/20" : "border-slate-200")}
+      className={cn("w-full justify-start h-11 rounded-xl font-medium", primary ? "shadow-sm shadow-primary/20" : "border-border bg-white/60 dark:bg-slate-900/60")}
       asChild
     >
       <Link href={href}>{label}</Link>

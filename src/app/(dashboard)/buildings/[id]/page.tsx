@@ -46,8 +46,8 @@ export default async function BuildingDetailPage({ params }: { params: { id: str
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Building className="h-8 w-8 text-primary" />
+          <h1 className="text-3xl font-semibold tracking-tight flex items-center gap-2">
+            <Building className="h-6 w-6 text-primary" />
             {building.name}
           </h1>
           <p className="text-muted-foreground">{building.address}</p>
@@ -64,7 +64,8 @@ export default async function BuildingDetailPage({ params }: { params: { id: str
       </div>
 
       {/* Flats Table */}
-      <div className="rounded-md border bg-card">
+      <div className="surface-card rounded-2xl overflow-hidden">
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -92,10 +93,10 @@ export default async function BuildingDetailPage({ params }: { params: { id: str
                     <Badge className={cn(
                       "text-[10px]",
                       {
-                        'Occupied': 'bg-indigo-500/10 text-indigo-600',
-                        'Pre-booked': 'bg-amber-500/10 text-amber-600',
-                        'Vacant': 'bg-emerald-500/10 text-emerald-600',
-                      }[String((flat as any).status)] ?? 'bg-gray-500/10 text-gray-600'
+                        'Occupied': 'bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-200',
+                        'Pre-booked': 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-200',
+                        'Vacant': 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200',
+                      }[String((flat as any).status)] ?? 'bg-gray-100 text-gray-700'
                     )}>
                       {({
                         'Occupied': 'OCCUPIED',
@@ -112,6 +113,7 @@ export default async function BuildingDetailPage({ params }: { params: { id: str
             )}
           </TableBody>
         </Table>
+        </div>
       </div>
     </div>
   );

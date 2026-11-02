@@ -58,7 +58,7 @@ export function EditTenantModal({ tenant, onSaved }: { tenant: any; onSaved?: ()
               name="rent_amount"
               type="number"
               defaultValue={tenant.flats?.rent_amount}
-              className="border-primary/20 bg-primary/5 font-black"
+              className="border-primary/20 bg-primary/5 font-medium"
               required
             />
           </div>

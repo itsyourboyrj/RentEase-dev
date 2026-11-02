@@ -3,12 +3,12 @@
 import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BillingTable } from "./billing-table";
 import { AdvanceModal } from "./advance-modal";
 import { BulkBillingPicker } from "./bulk-picker";
 import { NewBillModal } from "./new-bill-modal";
+import { CollectionReportButton } from "./collection-report-button";
 
 export function BillingDashboard({
   bills: initialBills,
@@ -45,6 +45,11 @@ export function BillingDashboard({
     });
   }, [initialBills, effectiveMonth, search]);
 
+  const monthlyBills = useMemo(
+    () => initialBills.filter((bill: any) => bill.billing_month === effectiveMonth),
+    [initialBills, effectiveMonth]
+  );
+
   const stats = useMemo(() => {
     const goal = filteredBills.reduce(
       (acc: number, b: any) => acc + Number(b.total_amount ?? 0),
@@ -57,44 +62,6 @@ export function BillingDashboard({
     const remaining = Math.max(0, goal - collected);
     return { goal, collected, remaining };
   }, [filteredBills]);
-
-  const sendDetailedReport = () => {
-    const phone = (owner?.phone ?? "").replace(/\D/g, "");
-    if (!phone) return;
-
-    const date = new Date().toLocaleDateString("en-IN");
-
-    const tenantDetails = filteredBills
-      .map((b: any) => {
-        const units = (b.current_reading ?? 0) - (b.previous_reading ?? 0);
-        const pending = (
-          Number(b.total_amount ?? 0) - Number(b.paid_amount ?? 0)
-        ).toFixed(2);
-        return (
-          `*${b.tenants?.name ?? "Unknown"} (${b.tenants?.flats?.flat_code ?? "-"})*\n` +
-          `   Reading: ${b.previous_reading ?? 0} > ${b.current_reading ?? 0} (${units} units)\n` +
-          `   Rent: ${b.rent_amount ?? 0} | Elec: ${b.electricity_amount ?? 0}\n` +
-          `   Total: ${b.total_amount ?? 0} | *Status: ${b.status ?? (b.is_paid ? "Paid" : "Due")}*\n` +
-          `   Pending: ${pending}`
-        );
-      })
-      .join("\n\n");
-
-    const message =
-      `*RentEase Collection Report*\n` +
-      `*Month:* ${effectiveMonth} | *Report Date:* ${date}\n` +
-      `---\n` +
-      `*Total Goal:* Rs.${stats.goal.toLocaleString("en-IN")}\n` +
-      `*Collected:* Rs.${stats.collected.toLocaleString("en-IN")}\n` +
-      `*Pending:* Rs.${stats.remaining.toLocaleString("en-IN")}\n` +
-      `---\n\n` +
-      `*DETAILED BREAKDOWN:*\n${tenantDetails}\n\n` +
-      `_Generated via RentEase_`;
-
-    window.open(
-      `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
-    );
-  };
 
   return (
     <div className="space-y-6 pb-20">
@@ -119,15 +86,7 @@ export function BillingDashboard({
         </div>
 
         <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
-          <Button
-            onClick={sendDetailedReport}
-            variant="ghost"
-            size="sm"
-            className="rounded-xl text-[10px] font-black uppercase text-slate-400 hover:text-primary"
-            disabled={!owner?.phone}
-          >
-            Send Report to Me
-          </Button>
+          <CollectionReportButton bills={monthlyBills} billingMonth={effectiveMonth} />
           <AdvanceModal tenants={tenants} />
           <BulkBillingPicker buildings={buildings} />
           <NewBillModal tenants={tenants} owner={owner} />
